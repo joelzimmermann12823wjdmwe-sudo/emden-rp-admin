@@ -10,28 +10,24 @@
 
     <header>
         <h1>Emden RP Admin Panel</h1>
-        <button id="theme-toggle" aria-label="Design umschalten">
-            <span>☀️</span>
-        </button>
+        <button id="theme-toggle" aria-label="Design umschalten"><span>☀️</span></button>
     </header>
 
     <div id="app-container">
         <div id="search-section">
             <input type="text" id="player-search" placeholder="Spielername oder ID suchen (Roblox)">
-            <ul id="search-results" class="dropdown">
-                </ul>
+            <ul id="search-results" class="dropdown"></ul>
         </div>
         
         <main class="content-wrapper">
             <section id="new-record-form" class="panel">
                 <h2>Neuer Moderations-Eintrag</h2>
                 <form id="record-form">
-                    <input type="hidden" id="admin-name-field"> <label for="player-id">Spieler-ID:</label>
+                    <input type="hidden" id="admin-name-field">
+                    <label for="player-id">Spieler-ID:</label>
                     <input type="text" id="player-id" required readonly placeholder="Wird durch Suche befüllt"> 
-                    
                     <label for="player-name">Spielername:</label>
                     <input type="text" id="player-name" required readonly placeholder="Wird durch Suche befüllt">
-
                     <label for="type">Typ:</label>
                     <select id="type" required>
                         <option value="">-- Typ wählen --</option>
@@ -41,10 +37,8 @@
                         <option value="Mündlicher Warn">Mündlicher Warn</option>
                         <option value="Kick">Kick</option>
                     </select>
-
                     <label for="reason">Grund:</label>
                     <textarea id="reason" rows="3" required></textarea>
-                    
                     <button type="submit">Eintrag speichern</button>
                 </form>
             </section>
@@ -63,8 +57,7 @@
                                 <th>Aktion</th>
                             </tr>
                         </thead>
-                        <tbody id="records-tbody">
-                            </tbody>
+                        <tbody id="records-tbody"></tbody>
                     </table>
                 </div>
             </section>

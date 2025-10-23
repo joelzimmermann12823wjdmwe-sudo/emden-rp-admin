@@ -1,44 +1,34 @@
 // api/admin.js
-
 const { v4: uuidv4 } = require('uuid');
 
-// Simulierte Datenbank (Daten gehen bei Neustart verloren!)
-let records = [];
+// ⚠️ NICHT-PERSISTENTER SPEICHER! Daten gehen bei Neustart verloren.
+let records = []; 
 
 module.exports = async (req, res) => {
-    // CORS headers
+    // CORS headers für Cross-Origin-Requests
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-    res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,DELETE,POST');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
     }
 
-    // GET: Alle oder gefilterte Einträge abrufen
+    // GET: Einträge abrufen (alle oder nach playerId)
     if (req.method === 'GET') {
         const { playerId } = req.query;
-        
-        if (playerId) {
-            // Filtern nach Spieler-ID, falls in der Query übergeben
-            const filteredRecords = records.filter(record => record.playerId === playerId);
-            return res.status(200).json(filteredRecords);
-        }
-
-        // Ansonsten alle Einträge (neueste zuerst)
-        return res.status(200).json(records);
+        const result = playerId ? records.filter(record => record.playerId === playerId) : records;
+        return res.status(200).json(result);
     }
 
     // POST: Neuen Eintrag hinzufügen
     if (req.method === 'POST') {
         try {
             const { type, playerId, playerName, reason, adminName, timestamp } = req.body;
-            
-            if (!playerId || !playerName || !type || !reason) {
-                 return res.status(400).json({ error: 'Fehlende Pflichtfelder.' });
+            if (!playerId || !type || !reason) {
+                 return res.status(400).json({ error: 'Pflichtfelder fehlen.' });
             }
-
             const record = {
                 id: uuidv4(),
                 type,
@@ -48,9 +38,7 @@ module.exports = async (req, res) => {
                 adminName,
                 timestamp: timestamp || new Date().toISOString()
             };
-
-            records.unshift(record); // Fügt den Eintrag am Anfang hinzu
-
+            records.unshift(record);
             return res.status(200).json({ success: true, record });
         } catch (error) {
             return res.status(500).json({ error: 'Internal Server Error' });
@@ -65,9 +53,8 @@ module.exports = async (req, res) => {
             records = records.filter(record => record.id !== id);
             
             if (records.length === initialLength) {
-                return res.status(404).json({ error: 'Eintrag nicht gefunden.' });
+                return res.status(404).json({ success: false, error: 'Eintrag nicht gefunden.' });
             }
-
             return res.status(200).json({ success: true });
         } catch (error) {
             return res.status(500).json({ error: 'Internal Server Error' });

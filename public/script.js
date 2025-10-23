@@ -1,16 +1,14 @@
-// public/script.js
+// public/script.js - Vollständige, funktionsfähige Logik
 
 const API_BASE = '/api/admin'; 
 const SEARCH_API = '/api/search-roblox'; 
-let allRecords = []; // Globale Speicherung aller geladenen Einträge
 
 document.addEventListener('DOMContentLoaded', () => {
-    // Initialisierung der Funktionen
     handleAdminLogin();
     handleThemeToggle();
     loadAndDisplayAllRecords();
     
-    // Event-Listener
+    // Event-Listener für Formular, Suche und Auswahl
     document.getElementById('record-form').addEventListener('submit', handleNewRecord);
     document.getElementById('player-search').addEventListener('input', debounce(handlePlayerSearch, 300));
     document.getElementById('search-results').addEventListener('click', (e) => {
@@ -24,7 +22,6 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // --- HELPER FUNKTIONEN ---
-
 function debounce(func, delay) {
     let timeout;
     return (...args) => {
@@ -33,11 +30,9 @@ function debounce(func, delay) {
     };
 }
 
-// --- 1. ADMIN ANMELDUNG ---
-
+// --- 1. ADMIN ANMELDUNG (SESSION) ---
 function handleAdminLogin() {
     let adminName = sessionStorage.getItem('adminName');
-    
     while (!adminName || adminName.trim() === '') {
         adminName = prompt('Bitte gib deinen Admin-Namen ein (z.B. Joel.Z):');
         if (adminName) {
@@ -48,10 +43,8 @@ function handleAdminLogin() {
 }
 
 // --- 2. THEME UMSCHALTER ---
-
 function handleThemeToggle() {
     const toggleButton = document.getElementById('theme-toggle');
-    
     const savedTheme = localStorage.getItem('theme');
     const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
     const currentTheme = savedTheme || (systemPrefersDark ? 'dark' : 'light');
@@ -68,15 +61,25 @@ function handleThemeToggle() {
 }
 
 // --- 3. DATENVERWALTUNG (CRUD) ---
-
 async function loadAndDisplayAllRecords() {
     try {
         const response = await fetch(API_BASE);
-        allRecords = await response.json();
-        displayRecords(allRecords);
+        const records = await response.json();
+        displayRecords(records);
+        document.getElementById('history-title').textContent = 'Gesamte Eintrags-Historie';
     } catch (error) {
-        console.error('Fehler beim Laden der Einträge:', error);
         document.getElementById('records-tbody').innerHTML = '<tr><td colspan="6">Fehler beim Laden der Historie.</td></tr>';
+    }
+}
+
+async function filterAndDisplayRecords(playerId, playerName) {
+    document.getElementById('history-title').textContent = `Historie für ${playerName} (ID: ${playerId})`;
+    try {
+        const response = await fetch(`${API_BASE}?playerId=${playerId}`);
+        const filteredRecords = await response.json();
+        displayRecords(filteredRecords);
+    } catch (error) {
+        document.getElementById('records-tbody').innerHTML = '<tr><td colspan="6">Fehler beim Filtern der Historie.</td></tr>';
     }
 }
 
@@ -96,12 +99,13 @@ function displayRecords(recordsToDisplay) {
             <td>${record.type}</td>
             <td>${record.playerName} (${record.playerId})</td>
             <td>${record.adminName}</td>
-            <td>${record.reason.substring(0, 50)}...</td>
-            <td><button class="delete-btn" data-id="${record.id}">Löschen</button></td>
+            <td>${record.reason.substring(0, 50)}${record.reason.length > 50 ? '...' : ''}</td>
+            <td>
+                <button class="action-button delete-btn" data-id="${record.id}">Löschen</button>
+            </td>
         `;
     });
 
-    // Listener für Lösch-Buttons
     document.querySelectorAll('.delete-btn').forEach(button => {
         button.addEventListener('click', handleDeleteRecord);
     });
@@ -119,8 +123,8 @@ async function handleNewRecord(event) {
         timestamp: new Date().toISOString()
     };
 
-    if (!record.playerId) {
-        alert('Bitte wähle zuerst einen Spieler über die Roblox-Suche aus.');
+    if (!record.playerId || record.type === "") {
+        alert('Bitte wähle einen Spieler und einen Typ aus.');
         return;
     }
 
@@ -133,27 +137,22 @@ async function handleNewRecord(event) {
 
         if (response.ok) {
             alert('Eintrag erfolgreich gespeichert!');
-            // Formular leeren
             document.getElementById('record-form').reset();
             document.getElementById('player-id').value = '';
             document.getElementById('player-name').value = ''; 
             document.getElementById('player-search').value = '';
-
-            loadAndDisplayAllRecords(); // Tabelle neu laden
+            loadAndDisplayAllRecords();
         } else {
             alert('Fehler beim Speichern des Eintrags.');
         }
     } catch (error) {
-        console.error('Fehler beim POST-Request:', error);
         alert('Interner Serverfehler beim Speichern.');
     }
 }
 
 async function handleDeleteRecord(event) {
     const id = event.target.dataset.id;
-    if (!confirm('Sicher, dass dieser Eintrag gelöscht werden soll?')) {
-        return;
-    }
+    if (!confirm('Sicher, dass dieser Eintrag gelöscht werden soll?')) return;
 
     try {
         const response = await fetch(API_BASE, {
@@ -163,29 +162,26 @@ async function handleDeleteRecord(event) {
         });
 
         if (response.ok) {
-            loadAndDisplayAllRecords(); // Tabelle neu laden
+            alert('Eintrag erfolgreich gelöscht!');
+            loadAndDisplayAllRecords();
         } else {
             alert('Fehler beim Löschen des Eintrags.');
         }
     } catch (error) {
-        console.error('Fehler beim DELETE-Request:', error);
         alert('Interner Serverfehler beim Löschen.');
     }
 }
 
 // --- 4. ROBLOX SUCHE UND SPIELERAUSWAHL ---
-
 async function handlePlayerSearch(event) {
     const query = event.target.value.trim();
     const resultsUl = document.getElementById('search-results');
     resultsUl.innerHTML = '';
     
-    // Verstecke die Liste, wenn die Suche leer ist
     if (query.length < 3) {
         resultsUl.style.display = 'none';
         return;
     }
-    
     resultsUl.style.display = 'block';
 
     try {
@@ -205,7 +201,6 @@ async function handlePlayerSearch(event) {
         }
 
     } catch (error) {
-        console.error('Fehler bei der Roblox-Suche:', error);
         resultsUl.innerHTML = '<li class="no-results">Suchdienst momentan nicht verfügbar.</li>';
     }
 }
@@ -217,17 +212,8 @@ function selectPlayer(user) {
     
     // 2. Suchleiste leeren und Ergebnisse verstecken
     document.getElementById('player-search').value = user.name;
-    document.getElementById('search-results').innerHTML = '';
     document.getElementById('search-results').style.display = 'none';
 
     // 3. Einträge filtern und anzeigen
     filterAndDisplayRecords(user.id, user.name);
-}
-
-function filterAndDisplayRecords(playerId, playerName) {
-    document.getElementById('history-title').textContent = `Historie für ${playerName} (ID: ${playerId})`;
-    
-    // Filtern der globalen Liste aller Einträge
-    const filtered = allRecords.filter(record => record.playerId === playerId);
-    displayRecords(filtered);
 }
