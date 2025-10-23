@@ -1,4 +1,4 @@
-// public/script.js - KORRIGIERT & ERWEITERT (Finale Version)
+// public/script.js - FINALE VERSION
 
 class AdminPanel {
     constructor() {
@@ -34,6 +34,7 @@ class AdminPanel {
         const searchInput = document.getElementById('playerSearch');
         const sidebarSearchInput = document.getElementById('sidebarPlayerSearch');
 
+        // WICHTIG: Korrekte Verwendung des Debounce-Helferchens
         if (searchInput) searchInput.addEventListener('input', this.debounce((e) => this.handlePlayerSearch(e.target.value, document.getElementById('searchResults')), 300));
         if (sidebarSearchInput) sidebarSearchInput.addEventListener('input', this.debounce((e) => this.handlePlayerSearch(e.target.value, document.getElementById('sidebarSearchResults')), 300));
         
@@ -52,6 +53,7 @@ class AdminPanel {
 
         // --- Klick außerhalb, um Ergebnisse zu verstecken ---
         document.addEventListener('click', (e) => {
+            // ... (logik um Suchergebnisse zu verstecken)
             if (searchInput && !searchInput.contains(e.target) && !document.getElementById('searchResults')?.contains(e.target)) {
                 this.hideResults(document.getElementById('searchResults'));
             }
@@ -83,7 +85,7 @@ class AdminPanel {
         this.applyTheme();
     }
 
-    // --- THEME ---
+    // ... (Theme Logik) ...
     applyTheme() {
         const savedTheme = localStorage.getItem('theme');
         const systemPrefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
@@ -99,8 +101,7 @@ class AdminPanel {
         document.getElementById('theme-toggle').innerHTML = isDark ? '<i class="fas fa-sun"></i>' : '<i class="fas fa-moon"></i>';
     }
 
-
-    // --- LOGIN / UI STATES ---
+    // ... (Login / UI States Logik) ...
     checkLogin() {
         const savedAdmin = sessionStorage.getItem('nordstadt_admin');
         if (savedAdmin) { this.currentAdmin = savedAdmin; this.showApp(); } else { this.showLogin(); }
@@ -144,32 +145,25 @@ class AdminPanel {
         const formTitle = document.getElementById('formTitle');
         if (!form || !formTitle) return;
         
-        // Mapping von Frontend-Aktionsnamen zu Backend-Datenbank-Typen
         const actionTitles = {
-            'verbal_warn': 'Mündliche Verwarnung',
-            'warn': 'Schriftliche Verwarnung',
-            'kick': 'Spieler Kicken',
-            '1day_ban': '1-Tages Ban',
-            'permanent_ban': 'Permanenter Ban'
+            'verbal_warn': 'Mündliche Verwarnung', 'warn': 'Schriftliche Verwarnung', 'kick': 'Spieler Kicken',
+            '1day_ban': '1-Tages Ban', 'permanent_ban': 'Permanenter Ban'
         };
         const backendTypes = {
-            'verbal_warn': 'Mündlicher Warn',
-            'warn': 'Warn',
-            'kick': 'Kick',
-            '1day_ban': 'Tagesban',
-            'permanent_ban': 'Ban'
+            'verbal_warn': 'Mündlicher Warn', 'warn': 'Warn', 'kick': 'Kick',
+            '1day_ban': 'Tagesban', 'permanent_ban': 'Ban'
         };
 
         formTitle.textContent = `${actionTitles[action]} für ${this.selectedPlayer.name}`;
-        document.getElementById('actionType').value = backendTypes[action]; // Backend-Wert setzen!
-        form.classList.add('active'); // Verwende .active Klasse für Modals
+        document.getElementById('actionType').value = backendTypes[action]; 
+        form.classList.add('active'); 
     }
     hideActionForm() {
         document.getElementById('actionForm')?.classList.remove('active');
         document.getElementById('adminForm')?.reset();
     }
 
-    // --- SPIELER SUCHE LOGIK ---
+    // --- SPIELER SUCHE LOGIK (Verwendet den korrekten API-Pfad) ---
     async handlePlayerSearch(query, resultsContainer) {
         if (query.length < 3) {
             this.hideResults(resultsContainer);
@@ -177,14 +171,14 @@ class AdminPanel {
         }
 
         try {
-            // Korrekter API-Pfad und Parameter
+            // HIER IST DER WICHTIGE PFAD: /api/search-roblox
             const response = await fetch(`${this.apiBase}/search-roblox?query=${encodeURIComponent(query)}`);
             if (!response.ok) throw new Error('Search failed');
             
             const results = await response.json();
             this.displaySearchResults(results, resultsContainer);
         } catch (error) {
-            this.showError('Suche fehlgeschlagen / Server offline', resultsContainer);
+            this.showError('Suche fehlgeschlagen / Server offline (Prüfe API-Datei)', resultsContainer);
         }
     }
 
@@ -192,7 +186,7 @@ class AdminPanel {
         if (!container) return;
         
         container.innerHTML = players.map(player => 
-            // Vereinfachte Darstellung (mit Platzhalter-Avatar)
+            // Hier wird die Liste der auswählbaren Spieler generiert
             `<div class="search-result-item" data-id="${player.id}" data-name="${player.name}">
                 <img src="/api/placeholder-avatar" alt="${player.name}">
                 <div class="search-result-info">
@@ -227,7 +221,6 @@ class AdminPanel {
         this.hideResults(document.getElementById('searchResults'));
         this.hideResults(document.getElementById('sidebarSearchResults'));
 
-        // Aktualisiere beide Suchfelder
         document.getElementById('playerSearch').value = player.name; 
         document.getElementById('sidebarPlayerSearch').value = player.name; 
         
@@ -254,22 +247,20 @@ class AdminPanel {
         document.getElementById('historyTitle').textContent = `Historie für ${this.selectedPlayer.name}`;
     }
 
-    // --- DATENVERWALTUNG ---
+    // --- DATENVERWALTUNG (Verwendet den korrekten API-Pfad) ---
     async submitAction() {
+        // ... (Logik zum Sammeln der Formulardaten) ...
         const actionType = document.getElementById('actionType');
         const reason = document.getElementById('reason');
         if (!actionType || !reason || !this.selectedPlayer) return;
 
         const formData = {
-            type: actionType.value, // Backend Type (z.B. 'Ban')
-            playerId: this.selectedPlayer.id,
-            playerName: this.selectedPlayer.name,
-            reason: reason.value,
-            adminName: this.currentAdmin,
-            timestamp: new Date().toISOString()
+            type: actionType.value, playerId: this.selectedPlayer.id, playerName: this.selectedPlayer.name,
+            reason: reason.value, adminName: this.currentAdmin, timestamp: new Date().toISOString()
         };
 
         try {
+            // HIER IST DER WICHTIGE PFAD: /api/admin
             const response = await fetch(`${this.apiBase}/admin`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -279,7 +270,6 @@ class AdminPanel {
             if (response.ok) {
                 alert('Aktion erfolgreich durchgeführt!');
                 this.hideActionForm();
-                // Nach dem Commit die Historie des Spielers neu laden
                 await this.loadPlayerRecords(this.selectedPlayer.id, this.selectedPlayer.name);
             } else {
                 alert('Fehler bei der Aktion!');
@@ -292,28 +282,30 @@ class AdminPanel {
     async loadAllRecords(forceReload = false) {
         document.getElementById('historyTitle').textContent = 'Gesamte Eintrags-Historie';
         try {
+            // HIER IST DER WICHTIGE PFAD: /api/admin
             const response = await fetch(`${this.apiBase}/admin`);
             this.allRecords = await response.json();
             this.displayRecords(this.allRecords);
         } catch (error) {
             this.allRecords = [];
-            this.displayError('Fehler beim Laden der Gesamthistorie.', document.getElementById('recordsList'));
+            this.displayError('Fehler beim Laden der Gesamthistorie. (Prüfe admin.js)', document.getElementById('recordsList'));
         }
     }
 
     async loadPlayerRecords(playerId, playerName) {
         document.getElementById('historyTitle').textContent = `Historie für ${playerName}`;
         try {
-            // Filtert direkt über die API
+            // HIER IST DER WICHTIGE PFAD: /api/admin?playerId=...
             const response = await fetch(`${this.apiBase}/admin?playerId=${playerId}`);
             const filteredRecords = await response.json();
             this.displayRecords(filteredRecords);
         } catch (error) {
-            this.displayError('Fehler beim Laden der Spielerhistorie.', document.getElementById('recordsList'));
+            this.displayError('Fehler beim Laden der Spielerhistorie. (Prüfe admin.js)', document.getElementById('recordsList'));
         }
     }
 
     displayRecords(records) {
+        // ... (Logik zur Darstellung der Einträge) ...
         const container = document.getElementById('recordsList');
         if (!container) return;
         
@@ -332,15 +324,11 @@ class AdminPanel {
 
     createRecordHTML(record) {
         const typeLabels = {
-            'Mündlicher Warn': 'Mündlich',
-            'Warn': 'Schriftlich',
-            'Kick': 'Kick',
-            'Tagesban': '1-Tag Ban',
-            'Ban': 'Permanent Ban'
+            'Mündlicher Warn': 'Mündlich', 'Warn': 'Schriftlich', 'Kick': 'Kick',
+            'Tagesban': '1-Tag Ban', 'Ban': 'Permanent Ban'
         };
         const recordType = typeLabels[record.type] || record.type;
         const timestamp = new Date(record.timestamp).toLocaleString('de-DE');
-        // Type wird für CSS-Klassen normalisiert (z.B. "Mündlicher Warn" -> "type-mündlicher-warn")
         const typeClass = record.type.toLowerCase().replace(/ /g, '-');
 
         return `
@@ -362,6 +350,7 @@ class AdminPanel {
         if (!confirm('Sicher, dass dieser Eintrag permanent gelöscht werden soll?')) return;
 
         try {
+            // HIER IST DER WICHTIGE PFAD: /api/admin
             const response = await fetch(`${this.apiBase}/admin`, {
                 method: 'DELETE',
                 headers: { 'Content-Type': 'application/json' },
@@ -370,7 +359,6 @@ class AdminPanel {
 
             if (response.ok) {
                 alert('Eintrag erfolgreich gelöscht!');
-                // Nach dem Löschen die richtige Historie neu laden
                 if (this.selectedPlayer) {
                     this.loadPlayerRecords(this.selectedPlayer.id, this.selectedPlayer.name);
                 } else {

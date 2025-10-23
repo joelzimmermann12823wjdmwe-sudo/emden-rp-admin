@@ -4,7 +4,7 @@ const { v4: uuidv4 } = require('uuid');
 let records = []; 
 
 module.exports = async (req, res) => {
-    // CORS Header für Vercel
+    // CORS Header
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,DELETE,POST');
@@ -16,14 +16,46 @@ module.exports = async (req, res) => {
 
     // GET: Einträge abrufen (mit/ohne playerId Filter)
     if (req.method === 'GET') {
-        // WICHTIG: Die API muss immer 200 OK und ein Array zurückgeben, 
-        // auch wenn es leer ist, um den Frontend-Fehler zu vermeiden.
         const { playerId } = req.query; 
         const result = playerId ? records.filter(record => record.playerId === playerId) : records;
-        return res.status(200).json(result); 
+        // WICHTIG: Gibt immer ein Array zurück, um Frontend-Fehler zu vermeiden
+        return res.status(200).json(result);
     }
-    // ... (restliche POST/DELETE Logik)
-    // ...
-    // ...
+
+    // POST: Neuen Eintrag hinzufügen
+    if (req.method === 'POST') {
+        try {
+            const { type, playerId, playerName, reason, adminName, timestamp } = req.body;
+            if (!playerId || !type || !reason) {
+                 return res.status(400).json({ success: false, error: 'Pflichtfelder fehlen.' });
+            }
+
+            const record = {
+                id: uuidv4(), type, playerId, playerName, reason, adminName,
+                timestamp: timestamp || new Date().toISOString()
+            };
+
+            records.unshift(record); 
+            return res.status(200).json({ success: true, record });
+        } catch (error) {
+            return res.status(500).json({ success: false, error: 'Internal Server Error' });
+        }
+    }
+
+    // DELETE: Eintrag löschen
+    if (req.method === 'DELETE') {
+        try {
+            const { id } = req.body;
+            const initialLength = records.length;
+            records = records.filter(record => record.id !== id);
+            if (records.length === initialLength) {
+                return res.status(404).json({ success: false, error: 'Eintrag nicht gefunden.' });
+            }
+            return res.status(200).json({ success: true, message: 'Eintrag gelöscht.' });
+        } catch (error) {
+            return res.status(500).json({ success: false, error: 'Internal Server Error' });
+        }
+    }
+
     return res.status(405).json({ error: 'Method not allowed' });
 };
