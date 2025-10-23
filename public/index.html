@@ -7,106 +7,195 @@
     <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
-<body>
-    <div class="container">
+<body class="light-mode">
+    <!-- Login Modal -->
+    <div id="loginModal" class="modal active">
+        <div class="modal-content login-content">
+            <div class="login-header">
+                <i class="fas fa-shield-alt"></i>
+                <h2>Emden RP Admin Login</h2>
+                <p>Bitte gib deinen Admin-Namen ein</p>
+            </div>
+            <form id="loginForm" class="login-form">
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="adminLogin" placeholder="z.B. Joel.Z" required autocomplete="off">
+                </div>
+                <button type="submit" class="btn btn-primary login-btn">
+                    <i class="fas fa-sign-in-alt"></i>
+                    Admin Panel betreten
+                </button>
+            </form>
+            <div class="login-footer">
+                <p>Dein Name wird gespeichert bis du die Seite verlässt</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main App (hidden until login) -->
+    <div id="app" class="hidden">
         <!-- Header -->
         <header class="header">
-            <div class="header-content">
-                <h1><i class="fas fa-shield-alt"></i> Emden RP Admin Panel</h1>
-                <div class="search-container">
-                    <div class="search-box">
-                        <i class="fas fa-search"></i>
-                        <input type="text" id="playerSearch" placeholder="Spieler suchen (wie bei Roblox)" autocomplete="off">
-                        <div id="searchResults" class="search-results"></div>
-                    </div>
+            <div class="header-left">
+                <div class="logo">
+                    <i class="fas fa-shield-alt"></i>
+                    <span>Emden RP</span>
                 </div>
+            </div>
+            
+            <div class="header-center">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="playerSearch" placeholder="Spieler suchen (Name oder ID)..." autocomplete="off">
+                    <div id="searchResults" class="search-results"></div>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <div class="user-info">
+                    <span class="admin-name" id="currentAdmin">-</span>
+                    <div class="admin-badge">Admin</div>
+                </div>
+                <div class="theme-toggle">
+                    <button id="themeToggle" class="theme-btn">
+                        <i class="fas fa-moon"></i>
+                    </button>
+                </div>
+                <button id="logoutBtn" class="logout-btn" title="Logout">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
             </div>
         </header>
 
-        <!-- Selected Player Info -->
+        <!-- Selected Player -->
         <div id="selectedPlayer" class="selected-player hidden">
             <div class="player-card">
                 <img id="playerAvatar" src="" alt="Avatar" class="player-avatar">
                 <div class="player-info">
                     <h3 id="playerName">-</h3>
-                    <span id="playerId" class="player-id">ID: -</span>
+                    <div class="player-details">
+                        <span id="playerId" class="player-id">ID: -</span>
+                        <span id="playerDisplayName" class="player-display-name"></span>
+                    </div>
                 </div>
-                <button id="clearSelection" class="clear-btn">
+                <button id="clearSelection" class="clear-btn" title="Spielerauswahl aufheben">
                     <i class="fas fa-times"></i>
                 </button>
             </div>
         </div>
 
-        <!-- Admin Actions -->
-        <div class="admin-actions">
-            <h2><i class="fas fa-bolt"></i> Schnellaktionen</h2>
-            <div class="action-buttons">
-                <button class="action-btn warn" data-action="verbal_warn">
-                    <i class="fas fa-comment"></i>
-                    Mündliche Verwarnung
+        <!-- Quick Actions -->
+        <section class="quick-actions">
+            <h2 class="section-title">
+                <i class="fas fa-bolt"></i>
+                Schnellaktionen
+            </h2>
+            <div class="actions-grid">
+                <button class="action-card verbal-warn" data-action="verbal_warn">
+                    <div class="action-icon">
+                        <i class="fas fa-comment-dots"></i>
+                    </div>
+                    <span class="action-title">Mündliche Verwarnung</span>
+                    <span class="action-desc">Leichte Regelverstöße</span>
                 </button>
-                <button class="action-btn warn" data-action="warn">
-                    <i class="fas fa-exclamation-triangle"></i>
-                    Schriftliche Verwarnung
+
+                <button class="action-card warn" data-action="warn">
+                    <div class="action-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <span class="action-title">Schriftliche Verwarnung</span>
+                    <span class="action-desc">Wiederholte Verstöße</span>
                 </button>
-                <button class="action-btn kick" data-action="kick">
-                    <i class="fas fa-door-open"></i>
-                    Kick
+
+                <button class="action-card kick" data-action="kick">
+                    <div class="action-icon">
+                        <i class="fas fa-door-open"></i>
+                    </div>
+                    <span class="action-title">Spieler Kicken</span>
+                    <span class="action-desc">Temporäre Entfernung</span>
                 </button>
-                <button class="action-btn ban" data-action="1day_ban">
-                    <i class="fas fa-ban"></i>
-                    1-Tages Ban
+
+                <button class="action-card ban-1day" data-action="1day_ban">
+                    <div class="action-icon">
+                        <i class="fas fa-ban"></i>
+                    </div>
+                    <span class="action-title">1-Tages Ban</span>
+                    <span class="action-desc">Schwere Verstöße</span>
                 </button>
-                <button class="action-btn ban" data-action="7day_ban">
-                    <i class="fas fa-ban"></i>
-                    7-Tage Ban
+
+                <button class="action-card ban-7day" data-action="7day_ban">
+                    <div class="action-icon">
+                        <i class="fas fa-gavel"></i>
+                    </div>
+                    <span class="action-title">7-Tage Ban</span>
+                    <span class="action-desc">Wiederholte schwere Verstöße</span>
                 </button>
-                <button class="action-btn ban" data-action="permanent_ban">
-                    <i class="fas fa-hammer"></i>
-                    Permanenter Ban
+
+                <button class="action-card ban-permanent" data-action="permanent_ban">
+                    <div class="action-icon">
+                        <i class="fas fa-hammer"></i>
+                    </div>
+                    <span class="action-title">Permanenter Ban</span>
+                    <span class="action-desc">Extreme Verstöße</span>
                 </button>
             </div>
-        </div>
+        </section>
 
         <!-- Action Form -->
         <div class="action-form hidden" id="actionForm">
-            <h3 id="formTitle">Aktion durchführen</h3>
-            <form id="adminForm">
-                <input type="hidden" id="actionType">
-                
-                <div class="form-group">
-                    <label for="reason">Grund:</label>
-                    <textarea id="reason" placeholder="Grund für die Aktion..." required></textarea>
-                </div>
-                
-                <div class="form-group">
-                    <label for="adminName">Admin Name:</label>
-                    <input type="text" id="adminName" placeholder="Dein Name" required>
-                </div>
+            <div class="form-container">
+                <h3 id="formTitle" class="form-title">Aktion durchführen</h3>
+                <form id="adminForm">
+                    <input type="hidden" id="actionType">
+                    
+                    <div class="form-group">
+                        <label for="reason" class="form-label">
+                            <i class="fas fa-comment"></i>
+                            Grund der Aktion:
+                        </label>
+                        <textarea id="reason" placeholder="Beschreibe den Regelverstoß..." required></textarea>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="adminName" class="form-label">
+                            <i class="fas fa-user-shield"></i>
+                            Bestätigender Admin:
+                        </label>
+                        <input type="text" id="adminName" readonly>
+                    </div>
 
-                <div class="form-actions">
-                    <button type="button" id="cancelAction" class="btn btn-secondary">
-                        <i class="fas fa-times"></i> Abbrechen
-                    </button>
-                    <button type="submit" class="btn btn-primary">
-                        <i class="fas fa-check"></i> Bestätigen
-                    </button>
-                </div>
-            </form>
+                    <div class="form-actions">
+                        <button type="button" id="cancelAction" class="btn btn-secondary">
+                            <i class="fas fa-times"></i> Abbrechen
+                        </button>
+                        <button type="submit" class="btn btn-primary">
+                            <i class="fas fa-check"></i> Aktion bestätigen
+                        </button>
+                    </div>
+                </form>
+            </div>
         </div>
 
         <!-- Player History -->
         <div class="player-history hidden" id="playerHistory">
-            <h3><i class="fas fa-history"></i> Spieler-Historie</h3>
+            <div class="section-header">
+                <h2 class="section-title">
+                    <i class="fas fa-history"></i>
+                    Spieler-Historie
+                </h2>
+            </div>
             <div id="historyList" class="history-list"></div>
         </div>
 
         <!-- All Records -->
-        <div class="records-section">
+        <section class="records-section">
             <div class="section-header">
-                <h2><i class="fas fa-list"></i> Alle Einträge</h2>
+                <h2 class="section-title">
+                    <i class="fas fa-list"></i>
+                    Alle Verwaltungseinträge
+                </h2>
                 <div class="filter-controls">
-                    <select id="filterType">
+                    <select id="filterType" class="filter-select">
                         <option value="all">Alle Aktionen</option>
                         <option value="verbal_warn">Mündliche Verwarnungen</option>
                         <option value="warn">Schriftliche Verwarnungen</option>
@@ -118,17 +207,22 @@
                 </div>
             </div>
             <div id="recordsList" class="records-list"></div>
-        </div>
+        </section>
     </div>
 
     <!-- Delete Confirmation Modal -->
-    <div id="deleteModal" class="modal hidden">
+    <div id="deleteModal" class="modal">
         <div class="modal-content">
-            <h3>Eintrag löschen</h3>
-            <p>Bist du sicher, dass du diesen Eintrag löschen möchtest?</p>
+            <div class="modal-header">
+                <i class="fas fa-exclamation-triangle"></i>
+                <h3>Eintrag löschen</h3>
+            </div>
+            <p>Bist du sicher, dass du diesen Eintrag löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.</p>
             <div class="modal-actions">
                 <button id="cancelDelete" class="btn btn-secondary">Abbrechen</button>
-                <button id="confirmDelete" class="btn btn-danger">Löschen</button>
+                <button id="confirmDelete" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Löschen
+                </button>
             </div>
         </div>
     </div>
