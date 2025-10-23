@@ -1,7 +1,9 @@
 class PlayerSearch {
     constructor() {
         this.searchInput = document.getElementById('playerSearch');
+        this.sidebarSearchInput = document.getElementById('sidebarPlayerSearch');
         this.searchResults = document.getElementById('searchResults');
+        this.sidebarSearchResults = document.getElementById('sidebarSearchResults');
         this.debounceTimer = null;
         this.isSearching = false;
         this.init();
@@ -12,101 +14,132 @@ class PlayerSearch {
     }
 
     setupEventListeners() {
-        this.searchInput.addEventListener('input', (e) => {
-            this.handleSearchInput(e.target.value);
-        });
+        // Desktop Search
+        if (this.searchInput) {
+            this.searchInput.addEventListener('input', (e) => {
+                this.handleSearchInput(e.target.value, this.searchResults);
+            });
 
-        this.searchInput.addEventListener('focus', () => {
-            if (this.searchInput.value.length > 0 && this.searchResults.innerHTML) {
-                this.searchResults.style.display = 'block';
-            }
-        });
+            this.searchInput.addEventListener('focus', () => {
+                if (this.searchInput.value.length > 0 && this.searchResults.innerHTML) {
+                    this.searchResults.style.display = 'block';
+                }
+            });
 
-        this.searchInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Escape') {
-                this.hideResults();
-            }
-        });
+            this.searchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    this.hideResults(this.searchResults);
+                }
+            });
+        }
 
+        // Mobile Sidebar Search
+        if (this.sidebarSearchInput) {
+            this.sidebarSearchInput.addEventListener('input', (e) => {
+                this.handleSearchInput(e.target.value, this.sidebarSearchResults);
+            });
+
+            this.sidebarSearchInput.addEventListener('focus', () => {
+                if (this.sidebarSearchInput.value.length > 0 && this.sidebarSearchResults.innerHTML) {
+                    this.sidebarSearchResults.style.display = 'block';
+                }
+            });
+
+            this.sidebarSearchInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') {
+                    this.hideResults(this.sidebarSearchResults);
+                }
+            });
+        }
+
+        // Click outside to close results
         document.addEventListener('click', (e) => {
-            if (!this.searchInput.contains(e.target) && !this.searchResults.contains(e.target)) {
-                this.hideResults();
+            if (this.searchInput && !this.searchInput.contains(e.target) && !this.searchResults.contains(e.target)) {
+                this.hideResults(this.searchResults);
+            }
+            if (this.sidebarSearchInput && !this.sidebarSearchInput.contains(e.target) && !this.sidebarSearchResults.contains(e.target)) {
+                this.hideResults(this.sidebarSearchResults);
             }
         });
     }
 
-    handleSearchInput(query) {
+    handleSearchInput(query, resultsContainer) {
         clearTimeout(this.debounceTimer);
         
-        // Zeige "Suche..." an während wir warten
         if (query.length >= 2 && !this.isSearching) {
-            this.showLoading();
+            this.showLoading(resultsContainer);
         }
 
         if (query.length < 2) {
-            this.hideResults();
+            this.hideResults(resultsContainer);
             return;
         }
 
         this.debounceTimer = setTimeout(() => {
-            this.performSearch(query);
+            this.performSearch(query, resultsContainer);
         }, 500);
     }
 
-    async performSearch(query) {
+    async performSearch(query, resultsContainer) {
         if (this.isSearching) return;
         
         this.isSearching = true;
-        this.showLoading();
+        this.showLoading(resultsContainer);
 
         try {
-            const response = await fetch(`${window.adminPanel.apiBase}/search?q=${encodeURIComponent(query)}`);
+            const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
             
             if (!response.ok) {
                 throw new Error(`Search failed: ${response.status}`);
             }
             
             const results = await response.json();
-            this.displayResults(results);
+            this.displayResults(results, resultsContainer);
         } catch (error) {
             console.error('Search error:', error);
-            this.showError('Suche fehlgeschlagen. Bitte versuche es erneut.');
+            this.showError('Suche fehlgeschlagen. Bitte versuche es erneut.', resultsContainer);
         } finally {
             this.isSearching = false;
         }
     }
 
-    showLoading() {
-        this.searchResults.innerHTML = `
+    showLoading(container) {
+        if (!container) return;
+        
+        container.innerHTML = `
             <div class="search-result-item loading-item">
                 <div class="loading-spinner"></div>
                 <span>Suche bei Roblox...</span>
             </div>
         `;
-        this.searchResults.style.display = 'block';
+        container.style.display = 'block';
     }
 
-    showError(message) {
-        this.searchResults.innerHTML = `
+    showError(message, container) {
+        if (!container) return;
+        
+        container.innerHTML = `
             <div class="search-result-item error-item">
                 <i class="fas fa-exclamation-triangle"></i>
                 <span>${message}</span>
             </div>
         `;
-        this.searchResults.style.display = 'block';
+        container.style.display = 'block';
     }
 
-    displayResults(players) {
-        this.searchResults.innerHTML = '';
+    displayResults(players, container) {
+        if (!container) return;
+        
+        container.innerHTML = '';
 
         if (players.length === 0) {
-            this.searchResults.innerHTML = `
+            container.innerHTML = `
                 <div class="search-result-item no-results">
                     <i class="fas fa-search"></i>
                     <span>Keine Spieler gefunden</span>
                 </div>
             `;
-            this.searchResults.style.display = 'block';
+            container.style.display = 'block';
             return;
         }
 
@@ -132,24 +165,31 @@ class PlayerSearch {
                 this.selectPlayer(player);
             });
 
-            this.searchResults.appendChild(item);
+            container.appendChild(item);
         });
 
-        this.searchResults.style.display = 'block';
+        container.style.display = 'block';
     }
 
     selectPlayer(player) {
-        window.adminPanel.selectPlayer(player);
-        this.searchInput.value = player.name; // Zeige den Namen weiterhin an
-        this.hideResults();
+        if (window.adminPanel) {
+            window.adminPanel.selectPlayer(player);
+        }
+        
+        if (this.searchInput) this.searchInput.value = '';
+        if (this.sidebarSearchInput) this.sidebarSearchInput.value = '';
+        
+        this.hideResults(this.searchResults);
+        this.hideResults(this.sidebarSearchResults);
     }
 
-    hideResults() {
-        this.searchResults.style.display = 'none';
+    hideResults(container) {
+        if (container) {
+            container.style.display = 'none';
+        }
     }
 }
 
-// Initialize search
 document.addEventListener('DOMContentLoaded', () => {
     new PlayerSearch();
 });

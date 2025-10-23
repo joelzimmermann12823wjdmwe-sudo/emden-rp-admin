@@ -1,4 +1,4 @@
-// Echte Roblox API Integration
+// Roblox API Integration
 module.exports = async (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
@@ -18,12 +18,9 @@ module.exports = async (req, res) => {
         try {
             let players = [];
 
-            // Prüfe ob es eine numerische ID ist
             if (/^\d+$/.test(q)) {
-                // Suche nach User ID
                 players = await searchByUserId(q);
             } else {
-                // Suche nach Username
                 players = await searchByUsername(q);
             }
 
@@ -37,14 +34,9 @@ module.exports = async (req, res) => {
     return res.status(405).json({ error: 'Method not allowed' });
 };
 
-// Suche nach Username
 async function searchByUsername(username) {
     try {
-        const response = await fetch(`https://users.roblox.com/v1/users/search?keyword=${encodeURIComponent(username)}&limit=10`, {
-            headers: {
-                'User-Agent': 'Emden-RP-Admin/1.0'
-            }
-        });
+        const response = await fetch(`https://users.roblox.com/v1/users/search?keyword=${encodeURIComponent(username)}&limit=10`);
 
         if (!response.ok) {
             throw new Error(`Roblox API error: ${response.status}`);
@@ -56,7 +48,6 @@ async function searchByUsername(username) {
             return [];
         }
 
-        // Hole Avatar Bilder für die Ergebnisse
         const playersWithAvatars = await Promise.all(
             data.data.map(async (user) => {
                 try {
@@ -87,23 +78,15 @@ async function searchByUsername(username) {
     }
 }
 
-// Suche nach User ID
 async function searchByUserId(userId) {
     try {
-        // Direkter User Abruf über ID
-        const userResponse = await fetch(`https://users.roblox.com/v1/users/${userId}`, {
-            headers: {
-                'User-Agent': 'Emden-RP-Admin/1.0'
-            }
-        });
+        const userResponse = await fetch(`https://users.roblox.com/v1/users/${userId}`);
 
         if (!userResponse.ok) {
             throw new Error(`User not found: ${userResponse.status}`);
         }
 
         const userData = await userResponse.json();
-
-        // Hole Avatar Bild
         const avatarUrl = await getAvatarThumbnail(userId);
 
         return [{
@@ -119,14 +102,9 @@ async function searchByUserId(userId) {
     }
 }
 
-// Hole Avatar Thumbnail
 async function getAvatarThumbnail(userId) {
     try {
-        const response = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=false`, {
-            headers: {
-                'User-Agent': 'Emden-RP-Admin/1.0'
-            }
-        });
+        const response = await fetch(`https://thumbnails.roblox.com/v1/users/avatar-headshot?userIds=${userId}&size=150x150&format=Png&isCircular=false`);
 
         if (!response.ok) {
             throw new Error(`Avatar API error: ${response.status}`);
