@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emden RP Admin Panel</title>
+    <title>Nordstadt RP Admin Panel</title>
     <link rel="stylesheet" href="style.css">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
 </head>
@@ -13,7 +13,7 @@
         <div class="modal-content login-content">
             <div class="login-header">
                 <i class="fas fa-shield-alt"></i>
-                <h2>Emden RP Admin Login</h2>
+                <h2>Nordstadt RP Admin Login</h2>
                 <p>Bitte gib deinen Admin-Namen ein</p>
             </div>
             <form id="loginForm" class="login-form">
@@ -23,7 +23,7 @@
                 </div>
                 <button type="submit" class="btn btn-primary login-btn">
                     <i class="fas fa-sign-in-alt"></i>
-                    Admin Panel betreten
+                    <span class="btn-text">Admin Panel betreten</span>
                 </button>
             </form>
             <div class="login-footer">
@@ -34,12 +34,79 @@
 
     <!-- Main App (hidden until login) -->
     <div id="app" class="hidden">
-        <!-- Header -->
+        <!-- Mobile Header -->
+        <div class="mobile-header">
+            <button class="mobile-menu-btn" id="mobileMenuBtn">
+                <i class="fas fa-bars"></i>
+            </button>
+            <div class="mobile-logo">
+                <i class="fas fa-shield-alt"></i>
+                <span>Nordstadt RP</span>
+            </div>
+            <div class="mobile-actions">
+                <button id="mobileThemeToggle" class="mobile-theme-btn">
+                    <i class="fas fa-moon"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Sidebar für Mobile -->
+        <div class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <div class="user-info">
+                    <span class="admin-name" id="sidebarAdmin">-</span>
+                    <div class="admin-badge">Admin</div>
+                </div>
+                <button class="sidebar-close" id="sidebarClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <div class="sidebar-search">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="sidebarPlayerSearch" placeholder="Spieler suchen..." autocomplete="off">
+                    <div id="sidebarSearchResults" class="search-results"></div>
+                </div>
+            </div>
+            <div class="sidebar-actions">
+                <button class="sidebar-action" data-action="verbal_warn">
+                    <i class="fas fa-comment-dots"></i>
+                    <span>Mündliche Verwarnung</span>
+                </button>
+                <button class="sidebar-action" data-action="warn">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <span>Schriftliche Verwarnung</span>
+                </button>
+                <button class="sidebar-action" data-action="kick">
+                    <i class="fas fa-door-open"></i>
+                    <span>Spieler Kicken</span>
+                </button>
+                <button class="sidebar-action" data-action="1day_ban">
+                    <i class="fas fa-ban"></i>
+                    <span>1-Tages Ban</span>
+                </button>
+                <button class="sidebar-action" data-action="permanent_ban">
+                    <i class="fas fa-hammer"></i>
+                    <span>Permanenter Ban</span>
+                </button>
+            </div>
+            <div class="sidebar-footer">
+                <button class="sidebar-logout" id="sidebarLogout">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Overlay für Mobile Sidebar -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Desktop Header -->
         <header class="header">
             <div class="header-left">
                 <div class="logo">
                     <i class="fas fa-shield-alt"></i>
-                    <span>Emden RP</span>
+                    <span>Nordstadt RP</span>
                 </div>
             </div>
             
@@ -67,147 +134,143 @@
             </div>
         </header>
 
-        <!-- Selected Player -->
-        <div id="selectedPlayer" class="selected-player hidden">
-            <div class="player-card">
-                <img id="playerAvatar" src="" alt="Avatar" class="player-avatar">
-                <div class="player-info">
-                    <h3 id="playerName">-</h3>
-                    <div class="player-details">
-                        <span id="playerId" class="player-id">ID: -</span>
-                        <span id="playerDisplayName" class="player-display-name"></span>
+        <!-- Main Content -->
+        <main class="main-content">
+            <!-- Selected Player -->
+            <div id="selectedPlayer" class="selected-player hidden">
+                <div class="player-card">
+                    <img id="playerAvatar" src="" alt="Avatar" class="player-avatar">
+                    <div class="player-info">
+                        <h3 id="playerName">-</h3>
+                        <div class="player-details">
+                            <span id="playerId" class="player-id">ID: -</span>
+                            <span id="playerDisplayName" class="player-display-name"></span>
+                        </div>
                     </div>
-                </div>
-                <button id="clearSelection" class="clear-btn" title="Spielerauswahl aufheben">
-                    <i class="fas fa-times"></i>
-                </button>
-            </div>
-        </div>
-
-        <!-- Quick Actions -->
-        <section class="quick-actions">
-            <h2 class="section-title">
-                <i class="fas fa-bolt"></i>
-                Schnellaktionen
-            </h2>
-            <div class="actions-grid">
-                <button class="action-card verbal-warn" data-action="verbal_warn">
-                    <div class="action-icon">
-                        <i class="fas fa-comment-dots"></i>
-                    </div>
-                    <span class="action-title">Mündliche Verwarnung</span>
-                    <span class="action-desc">Leichte Regelverstöße</span>
-                </button>
-
-                <button class="action-card warn" data-action="warn">
-                    <div class="action-icon">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <span class="action-title">Schriftliche Verwarnung</span>
-                    <span class="action-desc">Wiederholte Verstöße</span>
-                </button>
-
-                <button class="action-card kick" data-action="kick">
-                    <div class="action-icon">
-                        <i class="fas fa-door-open"></i>
-                    </div>
-                    <span class="action-title">Spieler Kicken</span>
-                    <span class="action-desc">Temporäre Entfernung</span>
-                </button>
-
-                <button class="action-card ban-1day" data-action="1day_ban">
-                    <div class="action-icon">
-                        <i class="fas fa-ban"></i>
-                    </div>
-                    <span class="action-title">1-Tages Ban</span>
-                    <span class="action-desc">Schwere Verstöße</span>
-                </button>
-
-                <button class="action-card ban-7day" data-action="7day_ban">
-                    <div class="action-icon">
-                        <i class="fas fa-gavel"></i>
-                    </div>
-                    <span class="action-title">7-Tage Ban</span>
-                    <span class="action-desc">Wiederholte schwere Verstöße</span>
-                </button>
-
-                <button class="action-card ban-permanent" data-action="permanent_ban">
-                    <div class="action-icon">
-                        <i class="fas fa-hammer"></i>
-                    </div>
-                    <span class="action-title">Permanenter Ban</span>
-                    <span class="action-desc">Extreme Verstöße</span>
-                </button>
-            </div>
-        </section>
-
-        <!-- Action Form -->
-        <div class="action-form hidden" id="actionForm">
-            <div class="form-container">
-                <h3 id="formTitle" class="form-title">Aktion durchführen</h3>
-                <form id="adminForm">
-                    <input type="hidden" id="actionType">
-                    
-                    <div class="form-group">
-                        <label for="reason" class="form-label">
-                            <i class="fas fa-comment"></i>
-                            Grund der Aktion:
-                        </label>
-                        <textarea id="reason" placeholder="Beschreibe den Regelverstoß..." required></textarea>
-                    </div>
-                    
-                    <div class="form-group">
-                        <label for="adminName" class="form-label">
-                            <i class="fas fa-user-shield"></i>
-                            Bestätigender Admin:
-                        </label>
-                        <input type="text" id="adminName" readonly>
-                    </div>
-
-                    <div class="form-actions">
-                        <button type="button" id="cancelAction" class="btn btn-secondary">
-                            <i class="fas fa-times"></i> Abbrechen
-                        </button>
-                        <button type="submit" class="btn btn-primary">
-                            <i class="fas fa-check"></i> Aktion bestätigen
-                        </button>
-                    </div>
-                </form>
-            </div>
-        </div>
-
-        <!-- Player History -->
-        <div class="player-history hidden" id="playerHistory">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-history"></i>
-                    Spieler-Historie
-                </h2>
-            </div>
-            <div id="historyList" class="history-list"></div>
-        </div>
-
-        <!-- All Records -->
-        <section class="records-section">
-            <div class="section-header">
-                <h2 class="section-title">
-                    <i class="fas fa-list"></i>
-                    Alle Verwaltungseinträge
-                </h2>
-                <div class="filter-controls">
-                    <select id="filterType" class="filter-select">
-                        <option value="all">Alle Aktionen</option>
-                        <option value="verbal_warn">Mündliche Verwarnungen</option>
-                        <option value="warn">Schriftliche Verwarnungen</option>
-                        <option value="kick">Kicks</option>
-                        <option value="1day_ban">1-Tage Bans</option>
-                        <option value="7day_ban">7-Tage Bans</option>
-                        <option value="permanent_ban">Permanente Bans</option>
-                    </select>
+                    <button id="clearSelection" class="clear-btn" title="Spielerauswahl aufheben">
+                        <i class="fas fa-times"></i>
+                    </button>
                 </div>
             </div>
-            <div id="recordsList" class="records-list"></div>
-        </section>
+
+            <!-- Quick Actions -->
+            <section class="quick-actions">
+                <h2 class="section-title">
+                    <i class="fas fa-bolt"></i>
+                    Schnellaktionen
+                </h2>
+                <div class="actions-grid">
+                    <button class="action-card verbal-warn" data-action="verbal_warn">
+                        <div class="action-icon">
+                            <i class="fas fa-comment-dots"></i>
+                        </div>
+                        <span class="action-title">Mündliche Verwarnung</span>
+                        <span class="action-desc">Leichte Regelverstöße</span>
+                    </button>
+
+                    <button class="action-card warn" data-action="warn">
+                        <div class="action-icon">
+                            <i class="fas fa-exclamation-triangle"></i>
+                        </div>
+                        <span class="action-title">Schriftliche Verwarnung</span>
+                        <span class="action-desc">Wiederholte Verstöße</span>
+                    </button>
+
+                    <button class="action-card kick" data-action="kick">
+                        <div class="action-icon">
+                            <i class="fas fa-door-open"></i>
+                        </div>
+                        <span class="action-title">Spieler Kicken</span>
+                        <span class="action-desc">Temporäre Entfernung</span>
+                    </button>
+
+                    <button class="action-card ban-1day" data-action="1day_ban">
+                        <div class="action-icon">
+                            <i class="fas fa-ban"></i>
+                        </div>
+                        <span class="action-title">1-Tages Ban</span>
+                        <span class="action-desc">Schwere Verstöße</span>
+                    </button>
+
+                    <button class="action-card ban-permanent" data-action="permanent_ban">
+                        <div class="action-icon">
+                            <i class="fas fa-hammer"></i>
+                        </div>
+                        <span class="action-title">Permanenter Ban</span>
+                        <span class="action-desc">Extreme Verstöße</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Action Form -->
+            <div class="action-form hidden" id="actionForm">
+                <div class="form-container">
+                    <h3 id="formTitle" class="form-title">Aktion durchführen</h3>
+                    <form id="adminForm">
+                        <input type="hidden" id="actionType">
+                        
+                        <div class="form-group">
+                            <label for="reason" class="form-label">
+                                <i class="fas fa-comment"></i>
+                                Grund der Aktion:
+                            </label>
+                            <textarea id="reason" placeholder="Beschreibe den Regelverstoß..." required></textarea>
+                        </div>
+                        
+                        <div class="form-group">
+                            <label for="adminName" class="form-label">
+                                <i class="fas fa-user-shield"></i>
+                                Bestätigender Admin:
+                            </label>
+                            <input type="text" id="adminName" readonly>
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="button" id="cancelAction" class="btn btn-secondary">
+                                <i class="fas fa-times"></i> 
+                                <span class="btn-text">Abbrechen</span>
+                            </button>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-check"></i> 
+                                <span class="btn-text">Aktion bestätigen</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Player History -->
+            <div class="player-history hidden" id="playerHistory">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-history"></i>
+                        Spieler-Historie
+                    </h2>
+                </div>
+                <div id="historyList" class="history-list"></div>
+            </div>
+
+            <!-- All Records -->
+            <section class="records-section">
+                <div class="section-header">
+                    <h2 class="section-title">
+                        <i class="fas fa-list"></i>
+                        Alle Verwaltungseinträge
+                    </h2>
+                    <div class="filter-controls">
+                        <select id="filterType" class="filter-select">
+                            <option value="all">Alle Aktionen</option>
+                            <option value="verbal_warn">Mündliche Verwarnungen</option>
+                            <option value="warn">Schriftliche Verwarnungen</option>
+                            <option value="kick">Kicks</option>
+                            <option value="1day_ban">1-Tage Bans</option>
+                            <option value="permanent_ban">Permanente Bans</option>
+                        </select>
+                    </div>
+                </div>
+                <div id="recordsList" class="records-list"></div>
+            </section>
+        </main>
     </div>
 
     <!-- Delete Confirmation Modal -->
@@ -219,13 +282,19 @@
             </div>
             <p>Bist du sicher, dass du diesen Eintrag löschen möchtest? Diese Aktion kann nicht rückgängig gemacht werden.</p>
             <div class="modal-actions">
-                <button id="cancelDelete" class="btn btn-secondary">Abbrechen</button>
+                <button id="cancelDelete" class="btn btn-secondary">
+                    <span class="btn-text">Abbrechen</span>
+                </button>
                 <button id="confirmDelete" class="btn btn-danger">
-                    <i class="fas fa-trash"></i> Löschen
+                    <i class="fas fa-trash"></i> 
+                    <span class="btn-text">Löschen</span>
                 </button>
             </div>
         </div>
     </div>
+
+    <!-- Notification Container -->
+    <div id="notificationContainer" class="notification-container"></div>
 
     <script src="script.js"></script>
     <script src="search.js"></script>

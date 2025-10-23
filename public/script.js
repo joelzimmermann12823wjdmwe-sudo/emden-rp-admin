@@ -4,18 +4,64 @@ class AdminPanel {
         this.selectedPlayer = null;
         this.pendingDeleteId = null;
         this.currentAdmin = null;
+        this.isMobile = false;
+        this.isTablet = false;
+        this.isDesktop = false;
         this.init();
     }
 
     async init() {
+        this.detectDeviceType();
+        this.setupResponsiveListeners();
         this.checkLogin();
         this.setupEventListeners();
         await this.loadAllRecords();
     }
 
+    detectDeviceType() {
+        const width = window.innerWidth;
+        
+        this.isMobile = width < 768;
+        this.isTablet = width >= 768 && width < 1024;
+        this.isDesktop = width >= 1024;
+        
+        document.body.classList.toggle('mobile', this.isMobile);
+        document.body.classList.toggle('tablet', this.isTablet);
+        document.body.classList.toggle('desktop', this.isDesktop);
+        
+        console.log(`Device detected: ${this.isMobile ? 'Mobile' : this.isTablet ? 'Tablet' : 'Desktop'}`);
+    }
+
+    setupResponsiveListeners() {
+        window.addEventListener('resize', () => {
+            this.detectDeviceType();
+            this.handleResponsiveChanges();
+        });
+        
+        this.handleResponsiveChanges();
+    }
+
+    handleResponsiveChanges() {
+        // Automatische Anpassungen basierend auf Gerätetyp
+        if (this.isMobile) {
+            this.setupMobileLayout();
+        } else {
+            this.setupDesktopLayout();
+        }
+    }
+
+    setupMobileLayout() {
+        // Mobile-spezifische Setup
+        console.log('Setting up mobile layout');
+    }
+
+    setupDesktopLayout() {
+        // Desktop-spezifische Setup
+        console.log('Setting up desktop layout');
+    }
+
     checkLogin() {
-        // Prüfe ob bereits eingeloggt
-        const savedAdmin = sessionStorage.getItem('emden_admin');
+        const savedAdmin = sessionStorage.getItem('nordstadt_admin');
         if (savedAdmin) {
             this.currentAdmin = savedAdmin;
             this.showApp();
@@ -33,9 +79,8 @@ class AdminPanel {
         document.getElementById('loginModal').classList.remove('active');
         document.getElementById('app').classList.remove('hidden');
         document.getElementById('currentAdmin').textContent = this.currentAdmin;
+        document.getElementById('sidebarAdmin').textContent = this.currentAdmin;
         document.getElementById('adminName').value = this.currentAdmin;
-        
-        // Lade gespeichertes Theme
         this.loadTheme();
     }
 
@@ -46,17 +91,51 @@ class AdminPanel {
             this.handleLogin();
         });
 
-        // Logout Button
+        // Logout Buttons
         document.getElementById('logoutBtn').addEventListener('click', () => {
             this.handleLogout();
         });
 
-        // Theme Toggle
+        document.getElementById('sidebarLogout').addEventListener('click', () => {
+            this.handleLogout();
+        });
+
+        // Theme Toggles
         document.getElementById('themeToggle').addEventListener('click', () => {
             this.toggleTheme();
         });
 
-        // Action buttons
+        document.getElementById('mobileThemeToggle').addEventListener('click', () => {
+            this.toggleTheme();
+        });
+
+        // Mobile Menu
+        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
+            this.toggleSidebar();
+        });
+
+        document.getElementById('sidebarClose').addEventListener('click', () => {
+            this.toggleSidebar();
+        });
+
+        document.getElementById('sidebarOverlay').addEventListener('click', () => {
+            this.toggleSidebar();
+        });
+
+        // Sidebar Actions
+        document.querySelectorAll('.sidebar-action').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                if (!this.selectedPlayer) {
+                    this.showNotification('Bitte wähle zuerst einen Spieler aus!', 'warning');
+                    return;
+                }
+                const action = e.currentTarget.dataset.action;
+                this.showActionForm(action);
+                this.toggleSidebar(); // Schließe Sidebar nach Aktion
+            });
+        });
+
+        // Desktop Action Buttons
         document.querySelectorAll('.action-card').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 if (!this.selectedPlayer) {
@@ -97,48 +176,184 @@ class AdminPanel {
         document.getElementById('confirmDelete').addEventListener('click', () => {
             this.confirmDelete();
         });
+
+        // Search inputs (Desktop und Mobile)
+        const setupSearch = (inputId, resultsId) => {
+            const input = document.getElementById(inputId);
+            const results = document.getElementById(resultsId);
+            
+            if (input && results) {
+                input.addEventListener('input', (e) => {
+                    this.handleSearchInput(e.target.value, results);
+                });
+
+                input.addEventListener('focus', () => {
+                    if (input.value.length > 0 && results.innerHTML) {
+                        results.style.display = 'block';
+                    }
+                });
+            }
+        };
+
+        setupSearch('playerSearch', 'searchResults');
+        setupSearch('sidebarPlayerSearch', 'sidebarSearchResults');
+    }
+
+    toggleSidebar() {
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        
+        sidebar.classList.toggle('active');
+        overlay.classList.toggle('active');
+        
+        // Verhindere Scrollen wenn Sidebar offen ist
+        document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
+    }
+
+    handleSearchInput(query, resultsContainer) {
+        clearTimeout(this.debounceTimer);
+        
+        if (query.length < 2) {
+            resultsContainer.style.display = 'none';
+            resultsContainer.innerHTML = '';
+            return;
+        }
+
+        if (query.length >= 2) {
+            this.showSearchLoading(resultsContainer);
+        }
+
+        this.debounceTimer = setTimeout(() => {
+            this.performSearch(query, resultsContainer);
+        }, 300);
+    }
+
+    showSearchLoading(container) {
+        container.innerHTML = `
+            <div class="search-result-item loading-item">
+                <div class="loading-spinner"></div>
+                <span>Suche bei Roblox...</span>
+            </div>
+        `;
+        container.style.display = 'block';
+    }
+
+    async performSearch(query, resultsContainer) {
+        try {
+            const response = await fetch(`${this.apiBase}/search?q=${encodeURIComponent(query)}`);
+            
+            if (!response.ok) {
+                throw new Error(`Search failed: ${response.status}`);
+            }
+            
+            const results = await response.json();
+            this.displaySearchResults(results, resultsContainer);
+        } catch (error) {
+            console.error('Search error:', error);
+            this.showSearchError('Suche fehlgeschlagen. Bitte versuche es erneut.', resultsContainer);
+        }
+    }
+
+    displaySearchResults(players, container) {
+        container.innerHTML = '';
+
+        if (players.length === 0) {
+            container.innerHTML = `
+                <div class="search-result-item no-results">
+                    <i class="fas fa-search"></i>
+                    <span>Keine Spieler gefunden</span>
+                </div>
+            `;
+            container.style.display = 'block';
+            return;
+        }
+
+        players.forEach(player => {
+            const item = document.createElement('div');
+            item.className = 'search-result-item';
+            item.innerHTML = `
+                <img src="${player.avatar}" alt="${player.name}" 
+                     onerror="this.src='/api/placeholder-avatar'">
+                <div class="search-result-info">
+                    <div class="player-name-row">
+                        <h4>${player.name}</h4>
+                        ${player.hasVerifiedBadge ? '<i class="fas fa-badge-check verified-badge"></i>' : ''}
+                    </div>
+                    <div class="player-details">
+                        <span class="display-name">${player.displayName}</span>
+                        <span class="player-id">ID: ${player.id}</span>
+                    </div>
+                </div>
+            `;
+            
+            item.addEventListener('click', () => {
+                this.selectPlayer(player);
+                container.style.display = 'none';
+                // Clear search input
+                document.getElementById('playerSearch').value = '';
+                document.getElementById('sidebarPlayerSearch').value = '';
+            });
+
+            container.appendChild(item);
+        });
+
+        container.style.display = 'block';
+    }
+
+    showSearchError(message, container) {
+        container.innerHTML = `
+            <div class="search-result-item error-item">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        container.style.display = 'block';
     }
 
     handleLogin() {
         const adminName = document.getElementById('adminLogin').value.trim();
         if (adminName) {
             this.currentAdmin = adminName;
-            sessionStorage.setItem('emden_admin', adminName);
+            sessionStorage.setItem('nordstadt_admin', adminName);
             this.showApp();
             this.showNotification(`Willkommen, ${adminName}!`, 'success');
         }
     }
 
     handleLogout() {
-        sessionStorage.removeItem('emden_admin');
+        sessionStorage.removeItem('nordstadt_admin');
         this.currentAdmin = null;
         this.showLogin();
         this.showNotification('Erfolgreich ausgeloggt', 'info');
+        this.toggleSidebar(); // Schließe Sidebar falls offen
     }
 
     toggleTheme() {
         const isDark = document.body.classList.toggle('dark-mode');
         document.body.classList.toggle('light-mode', !isDark);
         
-        const icon = document.querySelector('#themeToggle i');
-        icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+        // Update beide Theme Buttons
+        const icons = document.querySelectorAll('#themeToggle i, #mobileThemeToggle i');
+        icons.forEach(icon => {
+            icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+        });
         
-        // Speichere Theme Preference
-        localStorage.setItem('emden_theme', isDark ? 'dark' : 'light');
+        localStorage.setItem('nordstadt_theme', isDark ? 'dark' : 'light');
     }
 
     loadTheme() {
-        const savedTheme = localStorage.getItem('emden_theme') || 'light';
+        const savedTheme = localStorage.getItem('nordstadt_theme') || 'light';
         const isDark = savedTheme === 'dark';
         
         document.body.classList.toggle('dark-mode', isDark);
         document.body.classList.toggle('light-mode', !isDark);
         
-        const icon = document.querySelector('#themeToggle i');
-        icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+        const icons = document.querySelectorAll('#themeToggle i, #mobileThemeToggle i');
+        icons.forEach(icon => {
+            icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+        });
     }
 
-    // ... (rest of the methods remain the same as previous version)
     showActionForm(action) {
         const form = document.getElementById('actionForm');
         const formTitle = document.getElementById('formTitle');
@@ -148,7 +363,6 @@ class AdminPanel {
             'warn': 'Schriftliche Verwarnung', 
             'kick': 'Spieler Kicken',
             '1day_ban': '1-Tages Ban',
-            '7day_ban': '7-Tage Ban',
             'permanent_ban': 'Permanenter Ban'
         };
 
@@ -157,7 +371,7 @@ class AdminPanel {
         document.getElementById('adminName').value = this.currentAdmin;
         
         form.classList.remove('hidden');
-        form.scrollIntoView({ behavior: 'smooth' });
+        form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
     }
 
     hideActionForm() {
@@ -213,7 +427,6 @@ class AdminPanel {
         
         container.innerHTML = filteredRecords.map(record => this.createRecordHTML(record)).join('');
         
-        // Add delete event listeners
         document.querySelectorAll('.delete-btn').forEach(btn => {
             btn.addEventListener('click', (e) => {
                 const recordId = e.currentTarget.dataset.id;
@@ -228,7 +441,6 @@ class AdminPanel {
             'warn': 'Schriftliche Verwarnung',
             'kick': 'Kick',
             '1day_ban': '1-Tage Ban',
-            '7day_ban': '7-Tage Ban',
             'permanent_ban': 'Permanenter Ban'
         };
 
@@ -237,7 +449,6 @@ class AdminPanel {
             'warn': 'warn',
             'kick': 'kick',
             '1day_ban': 'ban',
-            '7day_ban': 'ban',
             'permanent_ban': 'ban'
         };
 
@@ -257,7 +468,8 @@ class AdminPanel {
                 </div>
                 <div class="record-actions">
                     <button class="delete-btn" data-id="${record.id}">
-                        <i class="fas fa-trash"></i> Löschen
+                        <i class="fas fa-trash"></i> 
+                        <span class="btn-text">Löschen</span>
                     </button>
                 </div>
             </div>
@@ -315,6 +527,11 @@ class AdminPanel {
         this.selectedPlayer = player;
         this.showSelectedPlayer();
         this.loadPlayerHistory();
+        
+        // Auf Mobile: Schließe Sidebar nach Spielerauswahl
+        if (this.isMobile) {
+            this.toggleSidebar();
+        }
     }
 
     showSelectedPlayer() {
@@ -368,30 +585,55 @@ class AdminPanel {
     }
 
     showNotification(message, type = 'info') {
-        // Einfache Notification - kann durch ein schöneres System ersetzt werden
+        const container = document.getElementById('notificationContainer');
+        const notification = document.createElement('div');
+        
         const icons = {
-            success: '✅',
-            error: '❌',
-            warning: '⚠️',
-            info: 'ℹ️'
+            success: 'fas fa-check-circle',
+            error: 'fas fa-exclamation-circle',
+            warning: 'fas fa-exclamation-triangle',
+            info: 'fas fa-info-circle'
         };
 
-        // Für eine schönere Lösung könnte man ein Toast-System implementieren
-        const notification = document.createElement('div');
-        notification.className = `notification notification-${type}`;
+        const colors = {
+            success: 'success',
+            error: 'error', 
+            warning: 'warning',
+            info: 'info'
+        };
+
+        notification.className = `notification ${colors[type]}`;
         notification.innerHTML = `
-            <span>${icons[type]} ${message}</span>
+            <i class="${icons[type]}"></i>
+            <span>${message}</span>
         `;
         
-        document.body.appendChild(notification);
+        container.appendChild(notification);
         
+        // Automatisch entfernen nach 5 Sekunden
         setTimeout(() => {
-            notification.remove();
-        }, 3000);
+            notification.style.animation = 'slideIn 0.3s ease reverse';
+            setTimeout(() => {
+                if (notification.parentNode) {
+                    notification.parentNode.removeChild(notification);
+                }
+            }, 300);
+        }, 5000);
     }
 }
 
 // Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     window.adminPanel = new AdminPanel();
+});
+
+// Handle page visibility changes
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        // Page is hidden, könnte optimiert werden
+        console.log('Page is hidden');
+    } else {
+        // Page is visible
+        console.log('Page is visible');
+    }
 });
