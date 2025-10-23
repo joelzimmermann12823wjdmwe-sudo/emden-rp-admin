@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Emden RP Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🚓 Emden RP Admin Panel</h1>
+            <p>Verwalte Bans, Kicks und Warns</p>
+        </header>
+
+        <div class="admin-actions">
+            <h2>Neue Aktion</h2>
+            <form id="actionForm">
+                <select id="actionType" required>
+                    <option value="">-- Aktion wählen --</option>
+                    <option value="ban">Ban</option>
+                    <option value="kick">Kick</option>
+                    <option value="warn">Warn</option>
+                </select>
+                
+                <input type="text" id="playerName" placeholder="Spielername" required>
+                <input type="text" id="playerId" placeholder="Spieler ID">
+                <input type="text" id="reason" placeholder="Grund" required>
+                <input type="text" id="adminName" placeholder="Dein Name" required>
+                
+                <button type="submit">Aktion durchführen</button>
+            </form>
+        </div>
+
+        <div class="tabs">
+            <button class="tab-button active" data-tab="bans">Bans</button>
+            <button class="tab-button" data-tab="kicks">Kicks</button>
+            <button class="tab-button" data-tab="warns">Warns</button>
+        </div>
+
+        <div class="tab-content">
+            <div id="bans" class="tab-pane active">
+                <h3>Ban-Liste</h3>
+                <div id="banList" class="list-container"></div>
+            </div>
+            
+            <div id="kicks" class="tab-pane">
+                <h3>Kick-Liste</h3>
+                <div id="kickList" class="list-container"></div>
+            </div>
+            
+            <div id="warns" class="tab-pane">
+                <h3>Warn-Liste</h3>
+                <div id="warnList" class="list-container"></div>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
