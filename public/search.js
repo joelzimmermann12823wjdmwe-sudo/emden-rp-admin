@@ -19,36 +19,12 @@ class PlayerSearch {
             this.searchInput.addEventListener('input', (e) => {
                 this.handleSearchInput(e.target.value, this.searchResults);
             });
-
-            this.searchInput.addEventListener('focus', () => {
-                if (this.searchInput.value.length > 0 && this.searchResults.innerHTML) {
-                    this.searchResults.style.display = 'block';
-                }
-            });
-
-            this.searchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    this.hideResults(this.searchResults);
-                }
-            });
         }
 
         // Mobile Sidebar Search
         if (this.sidebarSearchInput) {
             this.sidebarSearchInput.addEventListener('input', (e) => {
                 this.handleSearchInput(e.target.value, this.sidebarSearchResults);
-            });
-
-            this.sidebarSearchInput.addEventListener('focus', () => {
-                if (this.sidebarSearchInput.value.length > 0 && this.sidebarSearchResults.innerHTML) {
-                    this.sidebarSearchResults.style.display = 'block';
-                }
-            });
-
-            this.sidebarSearchInput.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') {
-                    this.hideResults(this.sidebarSearchResults);
-                }
             });
         }
 
@@ -66,10 +42,6 @@ class PlayerSearch {
     handleSearchInput(query, resultsContainer) {
         clearTimeout(this.debounceTimer);
         
-        if (query.length >= 2 && !this.isSearching) {
-            this.showLoading(resultsContainer);
-        }
-
         if (query.length < 2) {
             this.hideResults(resultsContainer);
             return;
@@ -84,7 +56,6 @@ class PlayerSearch {
         if (this.isSearching) return;
         
         this.isSearching = true;
-        this.showLoading(resultsContainer);
 
         try {
             const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
@@ -97,77 +68,49 @@ class PlayerSearch {
             this.displayResults(results, resultsContainer);
         } catch (error) {
             console.error('Search error:', error);
-            this.showError('Suche fehlgeschlagen. Bitte versuche es erneut.', resultsContainer);
+            this.showError('Suche fehlgeschlagen', resultsContainer);
         } finally {
             this.isSearching = false;
         }
     }
 
-    showLoading(container) {
-        if (!container) return;
-        
-        container.innerHTML = `
-            <div class="search-result-item loading-item">
-                <div class="loading-spinner"></div>
-                <span>Suche bei Roblox...</span>
-            </div>
-        `;
-        container.style.display = 'block';
-    }
-
     showError(message, container) {
         if (!container) return;
-        
-        container.innerHTML = `
-            <div class="search-result-item error-item">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span>${message}</span>
-            </div>
-        `;
+        container.innerHTML = `<div class="search-result-item">${message}</div>`;
         container.style.display = 'block';
     }
 
     displayResults(players, container) {
         if (!container) return;
         
-        container.innerHTML = '';
-
         if (players.length === 0) {
-            container.innerHTML = `
-                <div class="search-result-item no-results">
-                    <i class="fas fa-search"></i>
-                    <span>Keine Spieler gefunden</span>
-                </div>
-            `;
+            container.innerHTML = '<div class="search-result-item">Keine Spieler gefunden</div>';
             container.style.display = 'block';
             return;
         }
 
-        players.forEach(player => {
-            const item = document.createElement('div');
-            item.className = 'search-result-item';
-            item.innerHTML = `
-                <img src="${player.avatar}" alt="${player.name}" 
-                     onerror="this.src='/api/placeholder-avatar'">
+        container.innerHTML = players.map(player => `
+            <div class="search-result-item">
+                <img src="${player.avatar || '/api/placeholder-avatar'}" alt="${player.name}">
                 <div class="search-result-info">
                     <div class="player-name-row">
                         <h4>${player.name}</h4>
                         ${player.hasVerifiedBadge ? '<i class="fas fa-badge-check verified-badge"></i>' : ''}
                     </div>
                     <div class="player-details">
-                        <span class="display-name">${player.displayName}</span>
                         <span class="player-id">ID: ${player.id}</span>
                     </div>
                 </div>
-            `;
-            
+            </div>
+        `).join('');
+        
+        // Click event für alle Result Items
+        container.querySelectorAll('.search-result-item').forEach((item, index) => {
             item.addEventListener('click', () => {
-                this.selectPlayer(player);
+                this.selectPlayer(players[index]);
             });
-
-            container.appendChild(item);
         });
-
+        
         container.style.display = 'block';
     }
 
@@ -176,9 +119,11 @@ class PlayerSearch {
             window.adminPanel.selectPlayer(player);
         }
         
+        // Clear search inputs
         if (this.searchInput) this.searchInput.value = '';
         if (this.sidebarSearchInput) this.sidebarSearchInput.value = '';
         
+        // Hide results
         this.hideResults(this.searchResults);
         this.hideResults(this.sidebarSearchResults);
     }
@@ -190,6 +135,7 @@ class PlayerSearch {
     }
 }
 
+// Initialize when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
-    new PlayerSearch();
+    window.playerSearch = new PlayerSearch();
 });
