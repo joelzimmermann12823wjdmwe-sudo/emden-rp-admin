@@ -19,7 +19,7 @@ const App = () => {
     const [error, setError] = useState(null);
     
     // TEMPORÄRE ÄNDERUNG: Setze dies auf TRUE, um das Design zu sehen!
-    const [isVisible, setIsVisible] = useState(true); 
+    const [isVisible, setIsVisible] = useState(false); 
 
     // --- NUI-Events ---
 
