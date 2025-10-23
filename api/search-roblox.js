@@ -1,5 +1,3 @@
-// api/search-roblox.js - Korrekter Code für die dynamische Roblox Spieler-Suche
-
 module.exports = async (req, res) => {
     // CORS Header
     res.setHeader('Access-Control-Allow-Credentials', true);
@@ -16,33 +14,24 @@ module.exports = async (req, res) => {
 
     try {
         const { query } = req.query; 
-        
         if (!query || query.length < 3) {
-            return res.status(200).json([]);
+            // Sendet leeres Array zurück, wenn die Suchanfrage zu kurz ist
+            return res.status(200).json([]); 
         }
 
-        // AKTUELLE ÖFFENTLICHE ROBLOX-API FÜR DIE BENUTZERSUCHE
         const ROBLOX_SEARCH_URL = `https://users.roblox.com/v1/users/search?keyword=${encodeURIComponent(query)}&limit=10`;
-        
-        const robloxResponse = await fetch(ROBLOX_SEARCH_URL);
+        const robloxResponse = await fetch(ROBLAX_SEARCH_URL);
         
         if (!robloxResponse.ok) {
-            console.error(`Roblox API responded with status: ${robloxResponse.status}`);
             return res.status(502).json({ error: 'Fehler beim Abruf der Roblox API.' });
         }
         
         const data = await robloxResponse.json();
-
-        // Extrahiere die relevanten Daten: {id: 123, name: "Name"}
-        const results = data.data.map(user => ({ 
-            id: user.id.toString(), 
-            name: user.name 
-        }));
+        const results = data.data.map(user => ({ id: user.id.toString(), name: user.name }));
 
         return res.status(200).json(results);
 
     } catch (error) {
-        console.error('Roblox Search Error:', error);
         return res.status(500).json({ error: 'Interner Serverfehler bei der Suche.' });
     }
 };

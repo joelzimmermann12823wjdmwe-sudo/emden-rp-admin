@@ -1,12 +1,10 @@
-// api/admin.js - Finaler, korrigierter Code für Vercel Serverless Function
-
 const { v4: uuidv4 } = require('uuid');
 
-// ⚠️ SIMULIERTE DATENBANK (In-Memory). Daten gehen bei Neustart verloren.
+// SIMULIERTE DATENBANK (wird bei Vercel-Deployment bei Inaktivität zurückgesetzt)
 let records = []; 
 
 module.exports = async (req, res) => {
-    // Standard CORS-Header
+    // CORS Header für Vercel
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,DELETE,POST');
@@ -16,77 +14,47 @@ module.exports = async (req, res) => {
         return res.status(200).end();
     }
 
-    // ----------------------
-    // GET: Alle oder gefilterte Einträge abrufen
-    // ----------------------
+    // GET: Einträge abrufen (mit/ohne playerId Filter)
     if (req.method === 'GET') {
         const { playerId } = req.query; 
-        
-        if (playerId) {
-            // Filterung: Zeige nur Einträge für die spezifische Spieler-ID
-            const filteredRecords = records.filter(record => record.playerId === playerId);
-            return res.status(200).json(filteredRecords);
-        }
-
-        // Standard: Zeige alle Einträge
-        return res.status(200).json(records);
+        const result = playerId ? records.filter(record => record.playerId === playerId) : records;
+        return res.status(200).json(result);
     }
 
-    // ----------------------
     // POST: Neuen Eintrag hinzufügen
-    // ----------------------
     if (req.method === 'POST') {
         try {
             const { type, playerId, playerName, reason, adminName, timestamp } = req.body;
-            
-            // Grundlegende Validierung
             if (!playerId || !type || !reason) {
-                 return res.status(400).json({ success: false, error: 'Pflichtfelder (Spieler-ID, Typ, Grund) fehlen.' });
+                 return res.status(400).json({ success: false, error: 'Pflichtfelder fehlen.' });
             }
 
             const record = {
-                id: uuidv4(),
-                type,
-                playerId,
-                playerName,
-                reason,
-                adminName,
+                id: uuidv4(), type, playerId, playerName, reason, adminName,
                 timestamp: timestamp || new Date().toISOString()
             };
 
-            records.unshift(record); // Fügt den Eintrag am Anfang hinzu (neueste zuerst)
-
+            records.unshift(record); // Neueste Einträge zuerst
             return res.status(200).json({ success: true, record });
         } catch (error) {
-            console.error('POST Error:', error);
             return res.status(500).json({ success: false, error: 'Internal Server Error' });
         }
     }
 
-    // ----------------------
     // DELETE: Eintrag löschen
-    // ----------------------
     if (req.method === 'DELETE') {
         try {
             const { id } = req.body;
             const initialLength = records.length;
-            
             records = records.filter(record => record.id !== id);
-            
-            // Überprüfe, ob die Anzahl der Einträge abgenommen hat (404-Behandlung)
             if (records.length === initialLength) {
                 return res.status(404).json({ success: false, error: 'Eintrag nicht gefunden.' });
             }
-
-            return res.status(200).json({ success: true, message: 'Eintrag erfolgreich gelöscht.' });
+            return res.status(200).json({ success: true, message: 'Eintrag gelöscht.' });
         } catch (error) {
-            console.error('DELETE Error:', error);
             return res.status(500).json({ success: false, error: 'Internal Server Error' });
         }
     }
 
-    // ----------------------
-    // Standard-Antwort bei nicht erlaubter Methode
-    // ----------------------
     return res.status(405).json({ error: 'Method not allowed' });
 };
