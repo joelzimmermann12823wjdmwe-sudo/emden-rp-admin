@@ -3,6 +3,7 @@ class PlayerSearch {
         this.searchInput = document.getElementById('playerSearch');
         this.searchResults = document.getElementById('searchResults');
         this.debounceTimer = null;
+        this.isSearching = false;
         this.init();
     }
 
@@ -16,14 +17,20 @@ class PlayerSearch {
         });
 
         this.searchInput.addEventListener('focus', () => {
-            if (this.searchInput.value.length > 0) {
+            if (this.searchInput.value.length > 0 && this.searchResults.innerHTML) {
                 this.searchResults.style.display = 'block';
+            }
+        });
+
+        this.searchInput.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                this.hideResults();
             }
         });
 
         document.addEventListener('click', (e) => {
             if (!this.searchInput.contains(e.target) && !this.searchResults.contains(e.target)) {
-                this.searchResults.style.display = 'none';
+                this.hideResults();
             }
         });
     }
@@ -31,36 +38,74 @@ class PlayerSearch {
     handleSearchInput(query) {
         clearTimeout(this.debounceTimer);
         
+        // Zeige "Suche..." an während wir warten
+        if (query.length >= 2 && !this.isSearching) {
+            this.showLoading();
+        }
+
         if (query.length < 2) {
-            this.searchResults.style.display = 'none';
-            this.searchResults.innerHTML = '';
+            this.hideResults();
             return;
         }
 
         this.debounceTimer = setTimeout(() => {
             this.performSearch(query);
-        }, 300);
+        }, 500);
     }
 
     async performSearch(query) {
+        if (this.isSearching) return;
+        
+        this.isSearching = true;
+        this.showLoading();
+
         try {
-            // Hier würdest du eine echte Roblox API Integration machen
-            // Für jetzt simulieren wir die Suche
             const response = await fetch(`${window.adminPanel.apiBase}/search?q=${encodeURIComponent(query)}`);
-            const results = await response.json();
             
+            if (!response.ok) {
+                throw new Error(`Search failed: ${response.status}`);
+            }
+            
+            const results = await response.json();
             this.displayResults(results);
         } catch (error) {
             console.error('Search error:', error);
-            this.displayResults([]);
+            this.showError('Suche fehlgeschlagen. Bitte versuche es erneut.');
+        } finally {
+            this.isSearching = false;
         }
+    }
+
+    showLoading() {
+        this.searchResults.innerHTML = `
+            <div class="search-result-item loading-item">
+                <div class="loading-spinner"></div>
+                <span>Suche bei Roblox...</span>
+            </div>
+        `;
+        this.searchResults.style.display = 'block';
+    }
+
+    showError(message) {
+        this.searchResults.innerHTML = `
+            <div class="search-result-item error-item">
+                <i class="fas fa-exclamation-triangle"></i>
+                <span>${message}</span>
+            </div>
+        `;
+        this.searchResults.style.display = 'block';
     }
 
     displayResults(players) {
         this.searchResults.innerHTML = '';
 
         if (players.length === 0) {
-            this.searchResults.innerHTML = '<div class="search-result-item">Keine Spieler gefunden</div>';
+            this.searchResults.innerHTML = `
+                <div class="search-result-item no-results">
+                    <i class="fas fa-search"></i>
+                    <span>Keine Spieler gefunden</span>
+                </div>
+            `;
             this.searchResults.style.display = 'block';
             return;
         }
@@ -69,10 +114,17 @@ class PlayerSearch {
             const item = document.createElement('div');
             item.className = 'search-result-item';
             item.innerHTML = `
-                <img src="${player.avatar}" alt="${player.name}">
+                <img src="${player.avatar}" alt="${player.name}" 
+                     onerror="this.src='/api/placeholder-avatar'">
                 <div class="search-result-info">
-                    <h4>${player.name}</h4>
-                    <span>ID: ${player.id}</span>
+                    <div class="player-name-row">
+                        <h4>${player.name}</h4>
+                        ${player.hasVerifiedBadge ? '<i class="fas fa-badge-check verified-badge"></i>' : ''}
+                    </div>
+                    <div class="player-details">
+                        <span class="display-name">${player.displayName}</span>
+                        <span class="player-id">ID: ${player.id}</span>
+                    </div>
                 </div>
             `;
             
@@ -88,9 +140,12 @@ class PlayerSearch {
 
     selectPlayer(player) {
         window.adminPanel.selectPlayer(player);
-        this.searchInput.value = '';
+        this.searchInput.value = player.name; // Zeige den Namen weiterhin an
+        this.hideResults();
+    }
+
+    hideResults() {
         this.searchResults.style.display = 'none';
-        this.searchResults.innerHTML = '';
     }
 }
 
