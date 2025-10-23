@@ -1,64 +1,75 @@
-console.log('🔍 API Search wird geladen...');
+console.log('🔍 SUPER SIMPLE Search.js wird geladen...');
 
-module.exports = async (req, res) => {
-    console.log('📡 API Search Request:', req.method, req.query);
-    
-    // CORS headers
-    res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version');
-
-    if (req.method === 'OPTIONS') {
-        console.log('✅ CORS Preflight');
-        return res.status(200).end();
+class SimpleSearch {
+    constructor() {
+        console.log('🔧 SimpleSearch wird erstellt...');
+        this.searchInput = document.getElementById('playerSearch');
+        this.init();
     }
 
-    if (req.method === 'GET') {
-        const { q } = req.query;
-        console.log('🔍 Search Query:', q);
-
-        if (!q || q.length < 2) {
-            console.log('❌ Query zu kurz');
-            return res.status(200).json([]);
-        }
-
-        try {
-            // EINFACHE TEST DATEN
-            const testPlayers = [
-                {
-                    id: '1',
-                    name: 'Builderman',
-                    displayName: 'Builderman',
-                    avatar: '/api/placeholder-avatar',
-                    hasVerifiedBadge: true
-                },
-                {
-                    id: '2',
-                    name: 'JohnDoe',
-                    displayName: 'John',
-                    avatar: '/api/placeholder-avatar',
-                    hasVerifiedBadge: false
-                },
-                {
-                    id: '3',
-                    name: 'TestUser',
-                    displayName: 'Test',
-                    avatar: '/api/placeholder-avatar',
-                    hasVerifiedBadge: false
-                }
-            ].filter(player => 
-                player.name.toLowerCase().includes(q.toLowerCase())
-            );
-
-            console.log('✅ Sende Ergebnisse:', testPlayers);
-            return res.status(200).json(testPlayers);
-            
-        } catch (error) {
-            console.error('❌ Search error:', error);
-            return res.status(200).json([]);
+    init() {
+        if (this.searchInput) {
+            this.searchInput.addEventListener('input', (e) => {
+                this.handleSearch(e.target.value);
+            });
+            console.log('✅ SimpleSearch initialisiert');
         }
     }
 
-    console.log('❌ Method not allowed:', req.method);
-    return res.status(405).json({ error: 'Method not allowed' });
-};
+    handleSearch(query) {
+        console.log('🔍 Suche:', query);
+        
+        if (query.length < 2) {
+            this.hideResults();
+            return;
+        }
+
+        // SUPER EINFACHE TEST DATEN
+        const testPlayers = [
+            { id: '1', name: 'Builderman', displayName: 'Builderman' },
+            { id: '2', name: 'JohnDoe', displayName: 'John' },
+            { id: '3', name: 'TestUser', displayName: 'Test' }
+        ].filter(player => 
+            player.name.toLowerCase().includes(query.toLowerCase())
+        );
+
+        console.log('✅ Zeige Ergebnisse:', testPlayers);
+        this.showResults(testPlayers);
+    }
+
+    showResults(players) {
+        const resultsContainer = document.getElementById('searchResults');
+        if (!resultsContainer) return;
+
+        if (players.length === 0) {
+            resultsContainer.innerHTML = '<div>Keine Spieler gefunden</div>';
+        } else {
+            resultsContainer.innerHTML = players.map(player => `
+                <div class="search-result-item" onclick="window.simpleSearch.selectPlayer('${player.name}')">
+                    <strong>${player.name}</strong> (ID: ${player.id})
+                </div>
+            `).join('');
+        }
+        
+        resultsContainer.style.display = 'block';
+    }
+
+    hideResults() {
+        const resultsContainer = document.getElementById('searchResults');
+        if (resultsContainer) {
+            resultsContainer.style.display = 'none';
+        }
+    }
+
+    selectPlayer(playerName) {
+        console.log('🎮 Wähle Spieler:', playerName);
+        alert(`Spieler ${playerName} ausgewählt`);
+        this.hideResults();
+    }
+}
+
+// Initialize
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🚀 Starte SimpleSearch...');
+    window.simpleSearch = new SimpleSearch();
+});
