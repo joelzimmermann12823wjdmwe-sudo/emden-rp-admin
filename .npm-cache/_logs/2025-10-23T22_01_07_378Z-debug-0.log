@@ -1,0 +1,37 @@
+0 verbose cli /usr/bin/node /usr/bin/npm
+1 info using npm@11.3.0
+2 info using node@v22.16.0
+3 silly config load:file:/usr/lib/node_modules/npm/npmrc
+4 silly config load:file:/workspaces/emden-rp-admin/.npmrc
+5 warn Unknown project config "echo "cache". This will stop working in the next major version of npm.
+6 silly config load:file:/home/codespace/.npmrc
+7 silly config load:file:/etc/npmrc
+8 verbose title npm run build
+9 verbose argv "run" "build"
+10 verbose logfile logs-max:10 dir:/workspaces/emden-rp-admin/.npm-cache/_logs/2025-10-23T22_01_07_378Z-
+11 verbose logfile /workspaces/emden-rp-admin/.npm-cache/_logs/2025-10-23T22_01_07_378Z-debug-0.log
+12 silly logfile done cleaning log files
+13 verbose stack Error: Could not read package.json: Error: ENOENT: no such file or directory, open '/workspaces/emden-rp-admin/package.json'
+13 verbose stack     at async open (node:internal/fs/promises:633:25)
+13 verbose stack     at async readFile (node:internal/fs/promises:1237:14)
+13 verbose stack     at async read (/usr/lib/node_modules/npm/node_modules/@npmcli/package-json/lib/read-package.js:9:18)
+13 verbose stack     at async PackageJson.load (/usr/lib/node_modules/npm/node_modules/@npmcli/package-json/lib/index.js:131:31)
+13 verbose stack     at async PackageJson.normalize (/usr/lib/node_modules/npm/node_modules/@npmcli/package-json/lib/index.js:117:5)
+13 verbose stack     at async #run (/usr/lib/node_modules/npm/lib/commands/run-script.js:90:13)
+13 verbose stack     at async RunScript.exec (/usr/lib/node_modules/npm/lib/commands/run-script.js:44:7)
+13 verbose stack     at async Npm.exec (/usr/lib/node_modules/npm/lib/npm.js:208:9)
+13 verbose stack     at async module.exports (/usr/lib/node_modules/npm/lib/cli/entry.js:67:5)
+14 error code ENOENT
+15 error syscall open
+16 error path /workspaces/emden-rp-admin/package.json
+17 error errno -2
+18 error enoent Could not read package.json: Error: ENOENT: no such file or directory, open '/workspaces/emden-rp-admin/package.json'
+19 error enoent This is related to npm not being able to find a file.
+19 error enoent
+20 verbose cwd /workspaces/emden-rp-admin
+21 verbose os Linux 6.8.0-1030-azure
+22 verbose node v22.16.0
+23 verbose npm  v11.3.0
+24 verbose exit -2
+25 verbose code -2
+26 error A complete log of this run can be found in: /workspaces/emden-rp-admin/.npm-cache/_logs/2025-10-23T22_01_07_378Z-debug-0.log
