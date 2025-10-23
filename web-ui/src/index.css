@@ -1,33 +1,30 @@
 /* ===============================================
    NORDSTADT RP ADMIN PANEL - GLOBAL STYLES (index.css)
-   Modernes, dunkles Theme mit Akzentfarben.
+   Helles, sauberes Corporate Design.
    =============================================== */
 
 /* --- Variablendefinition (Farbpalette) --- */
 :root {
-    --color-bg-primary: #1a1a2e; /* Dunkler Hintergrund */
-    --color-bg-secondary: #16213e; /* Etwas hellerer Hintergrund für Sektionen */
-    --color-surface: #0f3460; /* Hauptflächen, Karten */
-    --color-surface-hover: #1b4b8a; /* Hover für Oberflächen */
-    --color-border: #0e3760; /* dezente Ränder */
-    --color-text-primary: #e0e0e0; /* Heller Text für Lesbarkeit */
-    --color-text-secondary: #a0a0a0; /* Sekundärer Text, Beschreibungen */
-    --color-accent-primary: #e94560; /* Akzentfarbe für wichtige Elemente (Buttons, Icons) */
-    --color-accent-hover: #c9354e; /* Hover für Akzentfarben */
-    --color-success: #3cb462; /* Erfolgsnachrichten, Revive */
-    --color-warning: #f1c40f; /* Warnungen, Kicks */
-    --color-danger: #e74c3c; /* Fehler, Bans */
+    --color-bg-primary: #f8f9fa; /* Sehr heller Hintergrund */
+    --color-bg-secondary: #ffffff; /* Weiß für Karten und Surfaces */
+    --color-surface: #ffffff; /* Hauptflächen */
+    --color-surface-hover: #f1f3f5; /* Leichter Hover-Hintergrund */
+    --color-border: #dee2e6; /* Helle, dezente Ränder */
+    --color-text-primary: #212529; /* Dunkler Text für Lesbarkeit */
+    --color-text-secondary: #6c757d; /* Sekundärer Text */
+    --color-accent-primary: #007bff; /* Nordstadt RP Blau (Hauptfarbe) */
+    --color-accent-hover: #0056b3; /* Dunkleres Blau für Hover */
+    --color-success: #28a745; /* Grünes Success */
+    --color-warning: #ffc107; /* Gelbe Warnung */
+    --color-danger: #dc3545; /* Rotes Danger */
 
-    --font-family-primary: 'Inter', sans-serif; /* Moderne, lesbare Schriftart */
-    --font-family-monospace: 'Fira Code', monospace; /* Für Code/Logs */
-
-    --border-radius: 8px; /* Abgerundete Ecken */
-    --shadow-elevation-low: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
-    --shadow-elevation-medium: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
-    --shadow-elevation-high: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
+    --font-family-primary: 'Inter', sans-serif;
+    --border-radius: 6px; 
+    --shadow-elevation-low: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.08); /* Leichter Schatten */
+    --shadow-elevation-medium: 0 4px 8px rgba(0, 0, 0, 0.1); 
 }
 
-/* --- Globale Styles --- */
+/* --- Globale Styles und NUI-Container --- */
 *, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
@@ -37,73 +34,45 @@
 html, body, #root {
     height: 100%;
     width: 100%;
-    overflow: hidden; /* Verhindert Scrollbalken */
+    overflow: hidden; 
     font-family: var(--font-family-primary);
-    background-color: transparent; /* Wichtig für NUI */
+    background-color: transparent; 
     color: var(--color-text-primary);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
 }
 
-/* --- App Container (als Overlay) --- */
+/* Der NUI-Container (wird aktiv/unsichtbar gesetzt) */
 .app-container {
-    position: absolute; /* Überlagert das Spiel */
+    position: absolute; 
     top: 0;
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.6); /* Leichter, dunkler Overlay */
+    background-color: rgba(0, 0, 0, 0.2); /* Sehr leichter Overlay */
     display: flex;
     justify-content: center;
     align-items: center;
-    backdrop-filter: blur(5px); /* Leichter Blur für den Hintergrund */
-    opacity: 0; /* Standardmäßig unsichtbar */
+    backdrop-filter: blur(2px); 
+    opacity: 0; 
     transition: opacity 0.3s ease-in-out;
+    background-color: var(--color-bg-primary); /* Helle Farbe für den Test */
 }
 
-/* Wenn das Panel sichtbar ist (durch client.lua gesetzt) */
 .app-container.active {
     opacity: 1;
 }
 
-/* --- Allgemeine Schriftarten und Links --- */
-a {
-    color: var(--color-accent-primary);
-    text-decoration: none;
-}
-a:hover {
-    text-decoration: underline;
-}
-
-h1, h2, h3, h4, h5, h6 {
-    color: var(--color-text-primary);
-    margin-bottom: 0.5em;
-}
-
-input, button, select, textarea {
-    font-family: var(--font-family-primary);
-}
-
-/* --- Placeholder-Text --- */
-.placeholder {
-    color: var(--color-text-secondary);
-    text-align: center;
-    padding: 20px;
-    background-color: var(--color-bg-secondary);
-    border-radius: var(--border-radius);
-    box-shadow: var(--shadow-elevation-low);
-}
-
-/* --- Scrollbar Styling --- */
+/* --- Scrollbar Styling (hell) --- */
 ::-webkit-scrollbar {
     width: 8px;
-    background-color: var(--color-bg-secondary);
+    background-color: var(--color-bg-primary);
 }
 
 ::-webkit-scrollbar-thumb {
-    background-color: var(--color-surface-hover);
+    background-color: var(--color-border);
     border-radius: 10px;
-    border: 2px solid var(--color-bg-secondary);
+    border: 2px solid var(--color-bg-primary);
 }
 
 ::-webkit-scrollbar-thumb:hover {
