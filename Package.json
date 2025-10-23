@@ -1,13 +1,7 @@
 {
-  "name": "emden-rp-admin-panel",
+  "name": "nordstadt-rp-admin",
   "version": "1.0.0",
-  "description": "Admin panel for Emden RP server.",
-  "scripts": {
-    "start": "node server.js"
-  },
   "dependencies": {
-    "uuid": "^9.0.1"
-    // 'node-fetch' ist in Vercel/Node 18+ nicht explizit nötig, 
-    // da 'fetch' global verfügbar ist.
+    "uuid": "^9.0.0"
   }
 }

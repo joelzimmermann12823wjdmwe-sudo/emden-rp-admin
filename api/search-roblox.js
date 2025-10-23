@@ -1,8 +1,11 @@
-// api/search-roblox.js
+// api/search-roblox.js - Korrekter Code für die dynamische Roblox Spieler-Suche
+
 module.exports = async (req, res) => {
     // CORS Header
     res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
     if (req.method === 'OPTIONS') {
         return res.status(200).end();
@@ -18,19 +21,19 @@ module.exports = async (req, res) => {
             return res.status(200).json([]);
         }
 
-        // DIES IST DIE AKTUELLE ÖFFENTLICHE ROBLOX-API FÜR DIE BENUTZERSUCHE
-        // Die Funktion ist als Proxy implementiert, damit der Browser nicht direkt auf Roblox zugreifen muss.
+        // AKTUELLE ÖFFENTLICHE ROBLOX-API FÜR DIE BENUTZERSUCHE
         const ROBLOX_SEARCH_URL = `https://users.roblox.com/v1/users/search?keyword=${encodeURIComponent(query)}&limit=10`;
         
         const robloxResponse = await fetch(ROBLOX_SEARCH_URL);
         
         if (!robloxResponse.ok) {
+            console.error(`Roblox API responded with status: ${robloxResponse.status}`);
             return res.status(502).json({ error: 'Fehler beim Abruf der Roblox API.' });
         }
         
         const data = await robloxResponse.json();
 
-        // Mappe die Roblox-Antwort auf das benötigte Format {id: "123", name: "Name"}
+        // Extrahiere die relevanten Daten: {id: 123, name: "Name"}
         const results = data.data.map(user => ({ 
             id: user.id.toString(), 
             name: user.name 
@@ -39,6 +42,7 @@ module.exports = async (req, res) => {
         return res.status(200).json(results);
 
     } catch (error) {
+        console.error('Roblox Search Error:', error);
         return res.status(500).json({ error: 'Interner Serverfehler bei der Suche.' });
     }
 };

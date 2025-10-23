@@ -3,67 +3,180 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Emden RP Admin Panel</title>
+    <title>Nordstadt RP | Admin Panel</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
-    <header>
-        <h1>Emden RP Admin Panel</h1>
-        <button id="theme-toggle" aria-label="Design umschalten"><span>☀️</span></button>
-    </header>
-
-    <div id="app-container">
-        <div id="search-section">
-            <input type="text" id="player-search" placeholder="Spielername oder ID suchen (Roblox)">
-            <ul id="search-results" class="dropdown"></ul>
-        </div>
-        
-        <main class="content-wrapper">
-            <section id="new-record-form" class="panel">
-                <h2>Neuer Moderations-Eintrag</h2>
-                <form id="record-form">
-                    <input type="hidden" id="admin-name-field">
-                    <label for="player-id">Spieler-ID:</label>
-                    <input type="text" id="player-id" required readonly placeholder="Wird durch Suche befüllt"> 
-                    <label for="player-name">Spielername:</label>
-                    <input type="text" id="player-name" required readonly placeholder="Wird durch Suche befüllt">
-                    <label for="type">Typ:</label>
-                    <select id="type" required>
-                        <option value="">-- Typ wählen --</option>
-                        <option value="Ban">Ban (Permanent/Lang)</option>
-                        <option value="Tagesban">1-Tages Ban</option>
-                        <option value="Warn">Warn</option>
-                        <option value="Mündlicher Warn">Mündlicher Warn</option>
-                        <option value="Kick">Kick</option>
-                    </select>
-                    <label for="reason">Grund:</label>
-                    <textarea id="reason" rows="3" required></textarea>
-                    <button type="submit">Eintrag speichern</button>
-                </form>
-            </section>
-
-            <section id="record-history" class="panel">
-                <h2 id="history-title">Gesamte Eintrags-Historie</h2>
-                <div class="table-container">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Datum</th>
-                                <th>Typ</th>
-                                <th>Spielername (ID)</th>
-                                <th>Admin</th>
-                                <th>Grund</th>
-                                <th>Aktion</th>
-                            </tr>
-                        </thead>
-                        <tbody id="records-tbody"></tbody>
-                    </table>
+    <div id="loginModal" class="modal active">
+        <div class="login-content">
+            <div class="login-header">
+                <i class="fas fa-user-shield"></i>
+                <h2>Admin-Login</h2>
+                <p>Bitte gib deinen Admin-Namen ein, um fortzufahren.</p>
+            </div>
+            <form id="loginForm">
+                <div class="input-group">
+                    <i class="fas fa-user"></i>
+                    <input type="text" id="adminLogin" placeholder="Dein Admin-Name (z.B. Joel.Z)" required>
                 </div>
-            </section>
-        </main>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Zugang gewähren
+                </button>
+            </form>
+        </div>
     </div>
 
+    <div id="app" class="hidden">
+        
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-map-marked-alt"></i>
+                <span>NORDSTADT RP</span>
+            </div>
+            
+            <div class="header-center">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="playerSearch" placeholder="Spielername oder ID suchen...">
+                    <div id="searchResults" class="search-results"></div>
+                </div>
+            </div>
+
+            <div class="header-right">
+                <span id="currentAdmin" class="text-muted"></span>
+                <button id="theme-toggle" class="btn" style="background: var(--bg-secondary); color: var(--text-primary);"><i class="fas fa-sun"></i></button>
+                <button id="logoutBtn" class="btn" style="background: var(--danger); color: white;">
+                    <i class="fas fa-sign-out-alt"></i>
+                </button>
+                <button id="mobileMenuBtn" class="btn" style="background: var(--primary); color: white;">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+        </header>
+
+        <section id="selectedPlayerContainer" class="selected-player hidden">
+            <div class="player-card">
+                <img id="playerAvatar" src="/api/placeholder-avatar" alt="Spieler Avatar" class="player-avatar">
+                <div class="player-info">
+                    <h3 id="playerNameDisplay"></h3>
+                    <div class="player-details">
+                        <span id="playerIdDisplay" class="player-id"></span>
+                        <span id="playerDisplayName" class="player-display-name"></span>
+                    </div>
+                </div>
+                <button id="clearSelection" class="clear-btn" title="Auswahl aufheben">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        </section>
+
+        <main class="main-content">
+            
+            <section class="actions-section">
+                <h2 class="section-title"><i class="fas fa-gavel"></i> Admin-Aktionen</h2>
+                
+                <div class="actions-grid">
+                    <div class="action-card verbal-warn" data-action="verbal_warn">
+                        <div class="action-icon"><i class="fas fa-comment-dots"></i></div>
+                        <span class="action-title">Mündliche Verwarnung</span>
+                        <span class="action-desc">Zur Dokumentation, keine Spiel-Konsequenz.</span>
+                    </div>
+                    <div class="action-card warn" data-action="warn">
+                        <div class="action-icon"><i class="fas fa-exclamation-triangle"></i></div>
+                        <span class="action-title">Schriftliche Verwarnung</span>
+                        <span class="action-desc">Offizieller Warn-Eintrag.</span>
+                    </div>
+                    <div class="action-card kick" data-action="kick">
+                        <div class="action-icon"><i class="fas fa-sign-out-alt"></i></div>
+                        <span class="action-title">Spieler Kicken</span>
+                        <span class="action-desc">Sofortiger Server-Ausschluss.</span>
+                    </div>
+                    <div class="action-card ban-1day" data-action="1day_ban">
+                        <div class="action-icon"><i class="fas fa-clock"></i></div>
+                        <span class="action-title">1-Tages Ban</span>
+                        <span class="action-desc">Temporärer Server-Bann.</span>
+                    </div>
+                    <div class="action-card ban-permanent" data-action="permanent_ban">
+                        <div class="action-icon"><i class="fas fa-skull"></i></div>
+                        <span class="action-title">Permanenter Ban</span>
+                        <span class="action-desc">Endgültiger Server-Ausschluss.</span>
+                    </div>
+                </div>
+            </section>
+            
+            <div id="actionForm" class="modal hidden">
+                <div class="login-content" style="max-width: 500px;">
+                    <h3 id="formTitle" style="margin-bottom: var(--space-lg); font-size: 1.2rem;">Aktionstitel</h3>
+                    <form id="adminForm">
+                        <input type="hidden" id="actionType" name="type">
+                        <input type="hidden" id="adminName" name="adminName">
+
+                        <div class="input-group" style="margin-bottom: var(--space-md);">
+                            <i class="fas fa-pencil-alt"></i>
+                            <textarea id="reason" placeholder="Grund für die Aktion (detailliert)" rows="4" required style="width: 100%; padding: 10px 10px 10px 48px; border: 2px solid var(--border-light); border-radius: var(--radius-md); background: var(--bg-primary); color: var(--text-primary); font-size: 1rem;"></textarea>
+                        </div>
+                        
+                        <div style="display: flex; gap: var(--space-md); justify-content: flex-end;">
+                            <button type="button" id="cancelAction" class="btn" style="background: var(--bg-tertiary); color: var(--text-primary); flex: 1;">Abbrechen</button>
+                            <button type="submit" class="btn btn-primary" style="flex: 1;">
+                                <i class="fas fa-check-circle"></i> Bestätigen & Speichern
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+
+            <section class="records-section">
+                <div class="section-header">
+                    <h2 id="historyTitle" class="section-title"><i class="fas fa-history"></i> Gesamte Eintrags-Historie</h2>
+                    <button id="showAllRecords" class="btn" style="background: var(--bg-secondary); color: var(--text-primary); padding: 8px 12px; font-size: 0.85rem;"><i class="fas fa-list"></i> Alle Einträge</button>
+                </div>
+                
+                <div id="recordsList" class="records-list">
+                    <div class="no-records">Lade Historie...</div>
+                </div>
+            </section>
+
+        </main>
+        
+        <div id="sidebarOverlay" class="sidebar-overlay"></div>
+        <aside id="sidebar" class="sidebar">
+            <div class="sidebar-header">
+                <div class="logo">
+                    <i class="fas fa-map-marked-alt"></i>
+                    <span>Admin-Menü</span>
+                </div>
+                <button id="sidebarClose" class="btn clear-btn"><i class="fas fa-times"></i></button>
+            </div>
+            
+            <div class="sidebar-content">
+                <p class="sidebar-admin-info">Eingeloggt als: <strong id="sidebarAdmin"></strong></p>
+                
+                <div class="search-box" style="margin-bottom: var(--space-lg);">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="sidebarPlayerSearch" placeholder="Spieler suchen">
+                    <div id="sidebarSearchResults" class="search-results"></div>
+                </div>
+
+                <div class="sidebar-actions-list">
+                    <h4>Aktionen</h4>
+                    <button class="sidebar-action" data-action="verbal_warn"><i class="fas fa-comment-dots"></i> Mündliche Verwarnung</button>
+                    <button class="sidebar-action" data-action="warn"><i class="fas fa-exclamation-triangle"></i> Schriftliche Verwarnung</button>
+                    <button class="sidebar-action" data-action="kick"><i class="fas fa-sign-out-alt"></i> Spieler Kicken</button>
+                    <button class="sidebar-action" data-action="1day_ban"><i class="fas fa-clock"></i> 1-Tages Ban</button>
+                    <button class="sidebar-action" data-action="permanent_ban"><i class="fas fa-skull"></i> Permanenter Ban</button>
+                </div>
+                
+                <button id="sidebarLogout" class="btn btn-primary" style="background: var(--danger); margin-top: auto;">
+                    <i class="fas fa-sign-out-alt"></i> Abmelden
+                </button>
+            </div>
+        </aside>
+
+    </div>
+    
     <script src="script.js"></script>
 </body>
 </html>
