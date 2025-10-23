@@ -1,6 +1,6 @@
 const { v4: uuidv4 } = require('uuid');
 
-// Simulierte Datenbank (in Produktion durch echte DB ersetzen)
+// Simulierte Datenbank
 let records = [];
 
 module.exports = async (req, res) => {
@@ -32,7 +32,7 @@ module.exports = async (req, res) => {
                 timestamp: timestamp || new Date().toISOString()
             };
 
-            records.unshift(record); // Neueste zuerst
+            records.unshift(record);
 
             return res.status(200).json({ success: true, record });
         } catch (error) {

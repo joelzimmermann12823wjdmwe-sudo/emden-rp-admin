@@ -1,4 +1,3 @@
-// Roblox API Integration
 module.exports = async (req, res) => {
     // CORS headers
     res.setHeader('Access-Control-Allow-Origin', '*');
@@ -17,7 +16,7 @@ module.exports = async (req, res) => {
         }
 
         try {
-            // TEST DATEN - Später durch echte Roblox API ersetzen
+            // TEST DATEN
             const testPlayers = [
                 {
                     id: '1',
@@ -35,7 +34,7 @@ module.exports = async (req, res) => {
                 },
                 {
                     id: '3',
-                    name: 'TestUser',
+                    name: 'TestUser', 
                     displayName: 'Test',
                     avatar: '/api/placeholder-avatar',
                     hasVerifiedBadge: false

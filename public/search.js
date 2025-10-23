@@ -1,5 +1,8 @@
+console.log('🔍 Search.js wird geladen...');
+
 class PlayerSearch {
     constructor() {
+        console.log('🔧 PlayerSearch wird erstellt...');
         this.searchInput = document.getElementById('playerSearch');
         this.sidebarSearchInput = document.getElementById('sidebarPlayerSearch');
         this.searchResults = document.getElementById('searchResults');
@@ -10,15 +13,22 @@ class PlayerSearch {
     }
 
     init() {
+        console.log('🔧 Initialisiere PlayerSearch...');
         this.setupEventListeners();
+        console.log('✅ PlayerSearch initialisiert');
     }
 
     setupEventListeners() {
+        console.log('🔧 Setup Search Event Listeners...');
+        
         // Desktop Search
         if (this.searchInput) {
             this.searchInput.addEventListener('input', (e) => {
                 this.handleSearchInput(e.target.value, this.searchResults);
             });
+            console.log('✅ Desktop Search Event Listener hinzugefügt');
+        } else {
+            console.log('❌ Desktop Search Input nicht gefunden!');
         }
 
         // Mobile Sidebar Search
@@ -26,6 +36,9 @@ class PlayerSearch {
             this.sidebarSearchInput.addEventListener('input', (e) => {
                 this.handleSearchInput(e.target.value, this.sidebarSearchResults);
             });
+            console.log('✅ Mobile Search Event Listener hinzugefügt');
+        } else {
+            console.log('❌ Mobile Search Input nicht gefunden!');
         }
 
         // Click outside to close results
@@ -42,6 +55,8 @@ class PlayerSearch {
     handleSearchInput(query, resultsContainer) {
         clearTimeout(this.debounceTimer);
         
+        console.log('🔍 Suche:', query);
+        
         if (query.length < 2) {
             this.hideResults(resultsContainer);
             return;
@@ -56,18 +71,21 @@ class PlayerSearch {
         if (this.isSearching) return;
         
         this.isSearching = true;
+        console.log('🔍 Starte Suche für:', query);
 
         try {
             const response = await fetch(`/api/search?q=${encodeURIComponent(query)}`);
+            console.log('📡 API Response Status:', response.status);
             
             if (!response.ok) {
                 throw new Error(`Search failed: ${response.status}`);
             }
             
             const results = await response.json();
+            console.log('✅ Suchergebnisse:', results);
             this.displayResults(results, resultsContainer);
         } catch (error) {
-            console.error('Search error:', error);
+            console.error('❌ Search error:', error);
             this.showError('Suche fehlgeschlagen', resultsContainer);
         } finally {
             this.isSearching = false;
@@ -82,6 +100,8 @@ class PlayerSearch {
 
     displayResults(players, container) {
         if (!container) return;
+        
+        console.log('🎯 Zeige Ergebnisse:', players.length);
         
         if (players.length === 0) {
             container.innerHTML = '<div class="search-result-item">Keine Spieler gefunden</div>';
@@ -112,11 +132,17 @@ class PlayerSearch {
         });
         
         container.style.display = 'block';
+        console.log('✅ Ergebnisse angezeigt');
     }
 
     selectPlayer(player) {
+        console.log('🎮 Wähle Spieler:', player);
+        
         if (window.adminPanel) {
             window.adminPanel.selectPlayer(player);
+        } else {
+            console.log('❌ AdminPanel nicht gefunden!');
+            alert(`Spieler ${player.name} ausgewählt`);
         }
         
         // Clear search inputs
@@ -135,7 +161,10 @@ class PlayerSearch {
     }
 }
 
-// Initialize when DOM is loaded
+// Initialize
+console.log('🚀 Starte PlayerSearch...');
 document.addEventListener('DOMContentLoaded', () => {
+    console.log('✅ DOM ist geladen, erstelle PlayerSearch...');
     window.playerSearch = new PlayerSearch();
+    console.log('✅ PlayerSearch erstellt:', window.playerSearch);
 });
