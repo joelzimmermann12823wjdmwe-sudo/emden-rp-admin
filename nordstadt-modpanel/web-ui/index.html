@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nordstadt RP Adminpanel (Einfach)</title>
+    
+    <link rel="stylesheet" href="index.css"> 
+
+</head>
+<body>
+
+    <div id="app">
+        
+        <div id="login-screen" class="login-container">
+            <div style="font-size: 3em; color: var(--color-accent-primary); margin-bottom: 20px;">🛡️</div>
+            <h2>Nordstadt RP Admin Login</h2>
+            <p>Bitte gib deinen Admin-Namen ein</p>
+            
+            <div class="form-group">
+                <input type="text" id="adminNameInput" placeholder="z.B. Joel.Z">
+            </div>
+            
+            <button id="loginButton" class="submit-button">
+                → Admin Panel betreten
+            </button>
+            
+            <small>Dein Name wird gespeichert bis du die Seite verlässt / Schließt</small>
+            <div id="errorMessage" style="display: none;"></div>
+        </div>
+
+        <div id="modpanel-screen" class="modpanel-container" style="display: none;">
+            
+            <div class="modpanel-header">
+                <div class="logo-section">🛡️ Nordstadt RP</div>
+                <input type="text" id="playerSearchInput" class="search-input" placeholder="Spieler suchen (Name oder ID)...">
+                <div class="admin-info">
+                    Angemeldet: <span id="currentAdminName"></span>
+                </div>
+            </div>
+
+            <div class="modpanel-main">
+                <div class="main-content">
+                    <h3>⚡ Spieler Übersicht (Online)</h3>
+                    
+                    <div id="playerListContainer">
+                        <div class="player-card">
+                            <img src="https://via.placeholder.com/64" alt="Avatar">
+                            <div class="player-details">
+                                <h4>Max Mustermann (Server ID: 5)</h4>
+                                <p>Roblox ID: 1234567</p>
+                            </div>
+                            <div class="player-actions">
+                                <button class="player-action-button btn-warn" onclick="sendNuiMessage('warnPlayer', { id: 5 })">Warnen</button>
+                                <button class="player-action-button btn-ban" onclick="sendNuiMessage('banPlayer', { id: 5 })">Bannen</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const app = document.getElementById('app');
+        const loginScreen = document.getElementById('login-screen');
+        const modpanelScreen = document.getElementById('modpanel-screen');
+        const loginButton = document.getElementById('loginButton');
+        const adminNameInput = document.getElementById('adminNameInput');
+        const errorMessage = document.getElementById('errorMessage');
+        const currentAdminName = document.getElementById('currentAdminName');
+        const playerListContainer = document.getElementById('playerListContainer');
+        const playerSearchInput = document.getElementById('playerSearchInput');
+
+        let isAuthenticated = false;
+        
+        // --- NUI-Kommunikation ---
+        
+        const sendNuiMessage = (action, data = {}) => {
+            fetch(`https://nordstadt-modpanel/${action}`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            });
+        };
+
+        // Verarbeitet Events vom Client/Server (Lua)
+        window.addEventListener('message', function(event) {
+            const data = event.data;
+            
+            // Sichtbarkeit
+            if (data.type === 'showPanel') {
+                app.classList.remove('app-container-hidden');
+            } else if (data.type === 'hidePanel') {
+                app.classList.add('app-container-hidden');
+            } 
+            
+            // Login
+            else if (data.type === 'loginSuccess') {
+                handleSuccessfulLogin(data.name);
+            } else if (data.type === 'loginFailed') {
+                showError(data.message);
+            } 
+            
+            // Daten
+            else if (data.type === 'updatePlayers') {
+                renderPlayers(data.players);
+            }
+        });
+
+        // --- Frontend Logik ---
+
+        const handleSuccessfulLogin = (name) => {
+            isAuthenticated = true;
+            localStorage.setItem('adminName', name);
+            currentAdminName.textContent = name;
+            
+            // Zeige das Modpanel
+            loginScreen.style.display = 'none';
+            modpanelScreen.style.display = 'flex';
+            errorMessage.style.display = 'none';
+            
+            // Fordere die erste Spielerliste an
+            sendNuiMessage('requestPlayerUpdate');
+        }
+
+        const showError = (message) => {
+            errorMessage.textContent = message;
+            errorMessage.style.display = 'block';
+        }
+
+        const renderPlayers = (players) => {
+            playerListContainer.innerHTML = ''; 
+            
+            if (!players || players.length === 0) {
+                playerListContainer.innerHTML = '<p style="text-align:center; color: var(--color-text-secondary);">Keine Spieler online oder gefunden.</p>';
+                return;
+            }
+            
+            players.forEach(player => {
+                const card = document.createElement('div');
+                card.className = 'player-card';
+                
+                const robloxIdDisplay = player.robloxId ? `Roblox ID: ${player.robloxId}` : 'Roblox ID: N/A';
+                
+                card.innerHTML = `
+                    <img src="${player.avatarUrl || 'https://via.placeholder.com/64'}" alt="Avatar">
+                    <div class="player-details">
+                        <h4>${player.name} (Server ID: ${player.serverId})</h4>
+                        <p>${robloxIdDisplay}</p>
+                    </div>
+                    <div class="player-actions">
+                        <button class="player-action-button btn-warn" 
+                                onclick="sendNuiMessage('warnPlayer', { serverId: ${player.serverId}, name: '${player.name}' })">Warnen</button>
+                        <button class="player-action-button btn-ban" 
+                                onclick="sendNuiMessage('banPlayer', { serverId: ${player.serverId}, name: '${player.name}' })">Bannen</button>
+                    </div>
+                `;
+                playerListContainer.appendChild(card);
+            });
+        };
+
+
+        // --- Event Listener ---
+
+        loginButton.addEventListener('click', () => {
+            const name = adminNameInput.value.trim();
+            if (name === "") {
+                showError("Bitte gib einen Namen ein.");
+                return;
+            }
+            showError("Login wird geprüft...");
+            sendNuiMessage('requestLogin', { adminName: name });
+        });
+        
+        playerSearchInput.addEventListener('input', (event) => {
+            sendNuiMessage('searchPlayers', { query: event.target.value });
+        });
+
+
+        // --- Initialisierung ---
+        
+        // Füge die Klasse für das Ausblenden hinzu (für den Live-Betrieb)
+        app.classList.add('app-container-hidden'); 
+
+        // Simuliere die Sichtbarkeit für den Browser-Test (für Vercel)
+        if (window.location.protocol === "http:" || window.location.protocol === "https:") {
+            loginScreen.style.display = 'flex'; 
+            app.classList.remove('app-container-hidden'); 
+        }
+
+    </script>
+</body>
+</html>
