@@ -1347,3 +1347,224 @@ body {
         transition-duration: 0.01ms !important;
     }
 }
+/* ===== ACTIVITY LOGS STYLES ===== */
+.log-modal {
+    max-width: 800px;
+    max-height: 80vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.log-controls {
+    display: flex;
+    gap: var(--space-md);
+    padding: var(--space-lg);
+    border-bottom: 1px solid var(--border-light);
+    flex-wrap: wrap;
+}
+
+.log-container {
+    flex: 1;
+    overflow-y: auto;
+    padding: var(--space-lg);
+}
+
+.log-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+}
+
+.log-entry {
+    display: flex;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    border-radius: var(--radius-md);
+    border-left: 4px solid var(--primary);
+    background: var(--bg-secondary);
+    transition: all 0.3s ease;
+}
+
+.log-entry:hover {
+    background: var(--bg-tertiary);
+    transform: translateX(2px);
+}
+
+.log-entry.log-success {
+    border-left-color: var(--success);
+}
+
+.log-entry.log-danger {
+    border-left-color: var(--danger);
+}
+
+.log-entry.log-warning {
+    border-left-color: var(--warning);
+}
+
+.log-entry.log-info {
+    border-left-color: var(--primary);
+}
+
+.log-entry.log-secondary {
+    border-left-color: var(--secondary);
+}
+
+.log-icon {
+    display: flex;
+    align-items: flex-start;
+    padding: var(--space-sm);
+}
+
+.log-icon i {
+    font-size: 1.1rem;
+    color: var(--text-muted);
+}
+
+.log-content {
+    flex: 1;
+    min-width: 0;
+}
+
+.log-header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    margin-bottom: var(--space-xs);
+    flex-wrap: wrap;
+}
+
+.log-admin {
+    font-weight: 700;
+    color: var(--text-primary);
+    background: var(--primary);
+    color: white;
+    padding: 2px 8px;
+    border-radius: var(--radius-sm);
+    font-size: 0.8rem;
+}
+
+.log-action {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+
+.log-details {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    margin-bottom: var(--space-xs);
+}
+
+.log-player, .log-reason, .log-record {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    padding: 2px 0;
+}
+
+.log-player {
+    color: var(--primary);
+    font-weight: 600;
+}
+
+.log-reason {
+    font-style: italic;
+}
+
+.log-record {
+    font-family: 'Courier New', monospace;
+    background: var(--bg-tertiary);
+    padding: 2px 6px;
+    border-radius: var(--radius-sm);
+    display: inline-block;
+    max-width: fit-content;
+}
+
+.log-meta {
+    display: flex;
+    gap: var(--space-md);
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    flex-wrap: wrap;
+}
+
+.log-time {
+    font-weight: 600;
+}
+
+.log-ip {
+    font-family: 'Courier New', monospace;
+}
+
+.modal-footer {
+    padding: var(--space-md) var(--space-lg);
+    border-top: 1px solid var(--border-light);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.log-count {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.no-logs {
+    text-align: center;
+    padding: var(--space-2xl);
+    color: var(--text-muted);
+    font-style: italic;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    color: var(--text-muted);
+    font-size: 1.2rem;
+    cursor: pointer;
+    padding: var(--space-sm);
+    border-radius: var(--radius-md);
+    transition: all 0.3s ease;
+    margin-left: auto;
+}
+
+.modal-close:hover {
+    background: var(--bg-secondary);
+    color: var(--text-primary);
+}
+
+/* Responsive Logs */
+@media (max-width: 767px) {
+    .log-modal {
+        margin: var(--space-sm);
+        width: calc(100% - 2 * var(--space-sm));
+        max-height: calc(100vh - 2 * var(--space-sm));
+    }
+    
+    .log-controls {
+        flex-direction: column;
+    }
+    
+    .log-controls .btn {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .log-entry {
+        flex-direction: column;
+        gap: var(--space-sm);
+    }
+    
+    .log-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: var(--space-xs);
+    }
+    
+    .log-meta {
+        flex-direction: column;
+        gap: var(--space-xs);
+    }
+}

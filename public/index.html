@@ -298,5 +298,49 @@
 
     <script src="script.js"></script>
     <script src="search.js"></script>
+        <!-- Activity Logs Modal -->
+    <div id="activityLogModal" class="modal">
+        <div class="modal-content log-modal">
+            <div class="modal-header">
+                <i class="fas fa-history"></i>
+                <h3>Aktivitäts-Logs</h3>
+                <button id="closeLogsModal" class="modal-close">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            
+            <div class="log-controls">
+                <button id="exportLogsBtn" class="btn btn-secondary">
+                    <i class="fas fa-download"></i> Logs exportieren
+                </button>
+                <button id="clearLogsBtn" class="btn btn-danger">
+                    <i class="fas fa-trash"></i> Alle Logs löschen
+                </button>
+            </div>
+            
+            <div class="log-container">
+                <div id="activityLogList" class="log-list"></div>
+            </div>
+            
+            <div class="modal-footer">
+                <span class="log-count" id="logCount">0 Einträge</span>
+            </div>
+        </div>
+    </div>
+  <!-- View Logs Button in Header einfügen -->
+    <script>
+        // Füge den Logs Button zum Header hinzu
+        document.addEventListener('DOMContentLoaded', function() {
+            const headerRight = document.querySelector('.header-right');
+            if (headerRight) {
+                const logsButton = document.createElement('button');
+                logsButton.id = 'viewLogsBtn';
+                logsButton.className = 'theme-btn';
+                logsButton.title = 'Aktivitäts-Logs anzeigen';
+                logsButton.innerHTML = '<i class="fas fa-history"></i>';
+                headerRight.insertBefore(logsButton, headerRight.firstChild);
+            }
+        });
+    </script>
 </body>
 </html>

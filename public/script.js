@@ -7,308 +7,182 @@ class AdminPanel {
         this.isMobile = false;
         this.isTablet = false;
         this.isDesktop = false;
+        this.activityLogs = []; // Neue Variable für Aktivitäts-Logs
         this.init();
     }
 
-    async init() {
-        this.detectDeviceType();
-        this.setupResponsiveListeners();
-        this.checkLogin();
-        this.setupEventListeners();
-        await this.loadAllRecords();
-    }
+    // ... bestehende Methoden ...
 
-    detectDeviceType() {
-        const width = window.innerWidth;
-        
-        this.isMobile = width < 768;
-        this.isTablet = width >= 768 && width < 1024;
-        this.isDesktop = width >= 1024;
-        
-        document.body.classList.toggle('mobile', this.isMobile);
-        document.body.classList.toggle('tablet', this.isTablet);
-        document.body.classList.toggle('desktop', this.isDesktop);
-        
-        console.log(`Device detected: ${this.isMobile ? 'Mobile' : this.isTablet ? 'Tablet' : 'Desktop'}`);
-    }
-
-    setupResponsiveListeners() {
-        window.addEventListener('resize', () => {
-            this.detectDeviceType();
-            this.handleResponsiveChanges();
-        });
-        
-        this.handleResponsiveChanges();
-    }
-
-    handleResponsiveChanges() {
-        // Automatische Anpassungen basierend auf Gerätetyp
-        if (this.isMobile) {
-            this.setupMobileLayout();
-        } else {
-            this.setupDesktopLayout();
-        }
-    }
-
-    setupMobileLayout() {
-        // Mobile-spezifische Setup
-        console.log('Setting up mobile layout');
-    }
-
-    setupDesktopLayout() {
-        // Desktop-spezifische Setup
-        console.log('Setting up desktop layout');
-    }
-
-    checkLogin() {
-        const savedAdmin = sessionStorage.getItem('nordstadt_admin');
-        if (savedAdmin) {
-            this.currentAdmin = savedAdmin;
-            this.showApp();
-        } else {
-            this.showLogin();
-        }
-    }
-
-    showLogin() {
-        document.getElementById('loginModal').classList.add('active');
-        document.getElementById('app').classList.add('hidden');
-    }
-
-    showApp() {
-        document.getElementById('loginModal').classList.remove('active');
-        document.getElementById('app').classList.remove('hidden');
-        document.getElementById('currentAdmin').textContent = this.currentAdmin;
-        document.getElementById('sidebarAdmin').textContent = this.currentAdmin;
-        document.getElementById('adminName').value = this.currentAdmin;
-        this.loadTheme();
-    }
-
-    setupEventListeners() {
-        // Login Form
-        document.getElementById('loginForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.handleLogin();
-        });
-
-        // Logout Buttons
-        document.getElementById('logoutBtn').addEventListener('click', () => {
-            this.handleLogout();
-        });
-
-        document.getElementById('sidebarLogout').addEventListener('click', () => {
-            this.handleLogout();
-        });
-
-        // Theme Toggles
-        document.getElementById('themeToggle').addEventListener('click', () => {
-            this.toggleTheme();
-        });
-
-        document.getElementById('mobileThemeToggle').addEventListener('click', () => {
-            this.toggleTheme();
-        });
-
-        // Mobile Menu
-        document.getElementById('mobileMenuBtn').addEventListener('click', () => {
-            this.toggleSidebar();
-        });
-
-        document.getElementById('sidebarClose').addEventListener('click', () => {
-            this.toggleSidebar();
-        });
-
-        document.getElementById('sidebarOverlay').addEventListener('click', () => {
-            this.toggleSidebar();
-        });
-
-        // Sidebar Actions
-        document.querySelectorAll('.sidebar-action').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                if (!this.selectedPlayer) {
-                    this.showNotification('Bitte wähle zuerst einen Spieler aus!', 'warning');
-                    return;
-                }
-                const action = e.currentTarget.dataset.action;
-                this.showActionForm(action);
-                this.toggleSidebar(); // Schließe Sidebar nach Aktion
-            });
-        });
-
-        // Desktop Action Buttons
-        document.querySelectorAll('.action-card').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                if (!this.selectedPlayer) {
-                    this.showNotification('Bitte wähle zuerst einen Spieler aus!', 'warning');
-                    return;
-                }
-                const action = e.currentTarget.dataset.action;
-                this.showActionForm(action);
-            });
-        });
-
-        // Form submission
-        document.getElementById('adminForm').addEventListener('submit', (e) => {
-            e.preventDefault();
-            this.submitAction();
-        });
-
-        // Cancel action
-        document.getElementById('cancelAction').addEventListener('click', () => {
-            this.hideActionForm();
-        });
-
-        // Clear player selection
-        document.getElementById('clearSelection').addEventListener('click', () => {
-            this.clearPlayerSelection();
-        });
-
-        // Filter records
-        document.getElementById('filterType').addEventListener('change', () => {
-            this.filterRecords();
-        });
-
-        // Modal events
-        document.getElementById('cancelDelete').addEventListener('click', () => {
-            this.hideDeleteModal();
-        });
-
-        document.getElementById('confirmDelete').addEventListener('click', () => {
-            this.confirmDelete();
-        });
-
-        // Search inputs (Desktop und Mobile)
-        const setupSearch = (inputId, resultsId) => {
-            const input = document.getElementById(inputId);
-            const results = document.getElementById(resultsId);
-            
-            if (input && results) {
-                input.addEventListener('input', (e) => {
-                    this.handleSearchInput(e.target.value, results);
-                });
-
-                input.addEventListener('focus', () => {
-                    if (input.value.length > 0 && results.innerHTML) {
-                        results.style.display = 'block';
-                    }
-                });
-            }
+    // NEUE METHODE: Log Aktivität
+    logActivity(action, details = {}) {
+        const logEntry = {
+            id: this.generateId(),
+            timestamp: new Date().toISOString(),
+            admin: this.currentAdmin,
+            action: action,
+            details: details,
+            ip: 'N/A' // Könnte später mit Backend erweitert werden
         };
 
-        setupSearch('playerSearch', 'searchResults');
-        setupSearch('sidebarPlayerSearch', 'sidebarSearchResults');
-    }
-
-    toggleSidebar() {
-        const sidebar = document.getElementById('sidebar');
-        const overlay = document.getElementById('sidebarOverlay');
+        this.activityLogs.unshift(logEntry); // Neueste zuerst
         
-        sidebar.classList.toggle('active');
-        overlay.classList.toggle('active');
+        // In localStorage speichern für Persistenz
+        this.saveLogsToStorage();
         
-        // Verhindere Scrollen wenn Sidebar offen ist
-        document.body.style.overflow = sidebar.classList.contains('active') ? 'hidden' : '';
-    }
-
-    handleSearchInput(query, resultsContainer) {
-        clearTimeout(this.debounceTimer);
+        // Log in Konsole für Debugging
+        console.log('📝 Activity Log:', logEntry);
         
-        if (query.length < 2) {
-            resultsContainer.style.display = 'none';
-            resultsContainer.innerHTML = '';
-            return;
-        }
-
-        if (query.length >= 2) {
-            this.showSearchLoading(resultsContainer);
-        }
-
-        this.debounceTimer = setTimeout(() => {
-            this.performSearch(query, resultsContainer);
-        }, 300);
+        return logEntry;
     }
 
-    showSearchLoading(container) {
-        container.innerHTML = `
-            <div class="search-result-item loading-item">
-                <div class="loading-spinner"></div>
-                <span>Suche bei Roblox...</span>
-            </div>
-        `;
-        container.style.display = 'block';
+    // NEUE METHODE: ID Generator
+    generateId() {
+        return Date.now().toString(36) + Math.random().toString(36).substr(2);
     }
 
-    async performSearch(query, resultsContainer) {
+    // NEUE METHODE: Logs speichern
+    saveLogsToStorage() {
         try {
-            const response = await fetch(`${this.apiBase}/search?q=${encodeURIComponent(query)}`);
-            
-            if (!response.ok) {
-                throw new Error(`Search failed: ${response.status}`);
-            }
-            
-            const results = await response.json();
-            this.displaySearchResults(results, resultsContainer);
+            // Begrenze auf die letzten 1000 Einträge
+            const limitedLogs = this.activityLogs.slice(0, 1000);
+            localStorage.setItem('nordstadt_admin_logs', JSON.stringify(limitedLogs));
         } catch (error) {
-            console.error('Search error:', error);
-            this.showSearchError('Suche fehlgeschlagen. Bitte versuche es erneut.', resultsContainer);
+            console.error('Error saving logs to storage:', error);
         }
     }
 
-    displaySearchResults(players, container) {
-        container.innerHTML = '';
+    // NEUE METHODE: Logs laden
+    loadLogsFromStorage() {
+        try {
+            const savedLogs = localStorage.getItem('nordstadt_admin_logs');
+            if (savedLogs) {
+                this.activityLogs = JSON.parse(savedLogs);
+            }
+        } catch (error) {
+            console.error('Error loading logs from storage:', error);
+            this.activityLogs = [];
+        }
+    }
 
-        if (players.length === 0) {
-            container.innerHTML = `
-                <div class="search-result-item no-results">
-                    <i class="fas fa-search"></i>
-                    <span>Keine Spieler gefunden</span>
+    // NEUE METHODE: Logs anzeigen
+    showActivityLogs() {
+        const modal = document.getElementById('activityLogModal');
+        const logList = document.getElementById('activityLogList');
+        
+        if (!modal || !logList) return;
+        
+        // Lade Logs falls noch nicht geladen
+        if (this.activityLogs.length === 0) {
+            this.loadLogsFromStorage();
+        }
+        
+        logList.innerHTML = this.activityLogs.map(log => this.createLogEntryHTML(log)).join('') || 
+                           '<div class="no-logs">Keine Aktivitäts-Logs vorhanden</div>';
+        
+        modal.classList.add('active');
+    }
+
+    // NEUE METHODE: Log Eintrag HTML erstellen
+    createLogEntryHTML(log) {
+        const actionIcons = {
+            'login': 'fas fa-sign-in-alt',
+            'logout': 'fas fa-sign-out-alt',
+            'player_select': 'fas fa-user-check',
+            'ban': 'fas fa-ban',
+            'kick': 'fas fa-door-open',
+            'warn': 'fas fa-exclamation-triangle',
+            'verbal_warn': 'fas fa-comment',
+            'delete_record': 'fas fa-trash',
+            'view_logs': 'fas fa-history'
+        };
+
+        const actionColors = {
+            'login': 'success',
+            'logout': 'info',
+            'player_select': 'primary',
+            'ban': 'danger',
+            'kick': 'warning',
+            'warn': 'warning',
+            'verbal_warn': 'info',
+            'delete_record': 'danger',
+            'view_logs': 'secondary'
+        };
+
+        const actionTexts = {
+            'login': 'Hat sich angemeldet',
+            'logout': 'Hat sich abgemeldet',
+            'player_select': 'Hat Spieler ausgewählt',
+            'ban': 'Hat Spieler gebannt',
+            'kick': 'Hat Spieler gekickt',
+            'warn': 'Hat Verwarnung erteilt',
+            'verbal_warn': 'Hat mündliche Verwarnung erteilt',
+            'delete_record': 'Hat Eintrag gelöscht',
+            'view_logs': 'Hat Aktivitäts-Logs eingesehen'
+        };
+
+        return `
+            <div class="log-entry log-${actionColors[log.action] || 'secondary'}">
+                <div class="log-icon">
+                    <i class="${actionIcons[log.action] || 'fas fa-info-circle'}"></i>
                 </div>
-            `;
-            container.style.display = 'block';
+                <div class="log-content">
+                    <div class="log-header">
+                        <span class="log-admin">${log.admin}</span>
+                        <span class="log-action">${actionTexts[log.action] || log.action}</span>
+                    </div>
+                    <div class="log-details">
+                        ${log.details.playerName ? `<span class="log-player">Spieler: ${log.details.playerName}</span>` : ''}
+                        ${log.details.reason ? `<span class="log-reason">Grund: ${log.details.reason}</span>` : ''}
+                        ${log.details.recordId ? `<span class="log-record">Eintrag-ID: ${log.details.recordId}</span>` : ''}
+                    </div>
+                    <div class="log-meta">
+                        <span class="log-time">${new Date(log.timestamp).toLocaleString('de-DE')}</span>
+                        ${log.ip ? `<span class="log-ip">IP: ${log.ip}</span>` : ''}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    // NEUE METHODE: Logs exportieren
+    exportLogs() {
+        if (this.activityLogs.length === 0) {
+            this.showNotification('Keine Logs zum Exportieren vorhanden', 'warning');
             return;
         }
 
-        players.forEach(player => {
-            const item = document.createElement('div');
-            item.className = 'search-result-item';
-            item.innerHTML = `
-                <img src="${player.avatar}" alt="${player.name}" 
-                     onerror="this.src='/api/placeholder-avatar'">
-                <div class="search-result-info">
-                    <div class="player-name-row">
-                        <h4>${player.name}</h4>
-                        ${player.hasVerifiedBadge ? '<i class="fas fa-badge-check verified-badge"></i>' : ''}
-                    </div>
-                    <div class="player-details">
-                        <span class="display-name">${player.displayName}</span>
-                        <span class="player-id">ID: ${player.id}</span>
-                    </div>
-                </div>
-            `;
-            
-            item.addEventListener('click', () => {
-                this.selectPlayer(player);
-                container.style.display = 'none';
-                // Clear search input
-                document.getElementById('playerSearch').value = '';
-                document.getElementById('sidebarPlayerSearch').value = '';
-            });
-
-            container.appendChild(item);
-        });
-
-        container.style.display = 'block';
+        const logData = JSON.stringify(this.activityLogs, null, 2);
+        const blob = new Blob([logData], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `nordstadt-admin-logs-${new Date().toISOString().split('T')[0]}.json`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+        
+        this.logActivity('export_logs', { count: this.activityLogs.length });
+        this.showNotification('Logs erfolgreich exportiert', 'success');
     }
 
-    showSearchError(message, container) {
-        container.innerHTML = `
-            <div class="search-result-item error-item">
-                <i class="fas fa-exclamation-triangle"></i>
-                <span>${message}</span>
-            </div>
-        `;
-        container.style.display = 'block';
+    // NEUE METHODE: Logs löschen
+    clearLogs() {
+        if (this.activityLogs.length === 0) {
+            this.showNotification('Keine Logs zum Löschen vorhanden', 'warning');
+            return;
+        }
+
+        if (confirm(`Möchtest du wirklich alle ${this.activityLogs.length} Log-Einträge löschen? Diese Aktion kann nicht rückgängig gemacht werden.`)) {
+            this.activityLogs = [];
+            localStorage.removeItem('nordstadt_admin_logs');
+            this.showNotification('Alle Log-Einträge wurden gelöscht', 'success');
+            this.logActivity('clear_logs', { clearedCount: this.activityLogs.length });
+        }
     }
+
+    // BESTEHENDE METHODEN ERWEITERN mit Logging:
 
     handleLogin() {
         const adminName = document.getElementById('adminLogin').value.trim();
@@ -316,67 +190,32 @@ class AdminPanel {
             this.currentAdmin = adminName;
             sessionStorage.setItem('nordstadt_admin', adminName);
             this.showApp();
+            this.logActivity('login', { adminName: adminName });
             this.showNotification(`Willkommen, ${adminName}!`, 'success');
         }
     }
 
     handleLogout() {
+        this.logActivity('logout', { adminName: this.currentAdmin });
         sessionStorage.removeItem('nordstadt_admin');
         this.currentAdmin = null;
         this.showLogin();
         this.showNotification('Erfolgreich ausgeloggt', 'info');
-        this.toggleSidebar(); // Schließe Sidebar falls offen
+        this.toggleSidebar();
     }
 
-    toggleTheme() {
-        const isDark = document.body.classList.toggle('dark-mode');
-        document.body.classList.toggle('light-mode', !isDark);
-        
-        // Update beide Theme Buttons
-        const icons = document.querySelectorAll('#themeToggle i, #mobileThemeToggle i');
-        icons.forEach(icon => {
-            icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
+    selectPlayer(player) {
+        this.selectedPlayer = player;
+        this.showSelectedPlayer();
+        this.loadPlayerHistory();
+        this.logActivity('player_select', { 
+            playerId: player.id, 
+            playerName: player.name 
         });
         
-        localStorage.setItem('nordstadt_theme', isDark ? 'dark' : 'light');
-    }
-
-    loadTheme() {
-        const savedTheme = localStorage.getItem('nordstadt_theme') || 'light';
-        const isDark = savedTheme === 'dark';
-        
-        document.body.classList.toggle('dark-mode', isDark);
-        document.body.classList.toggle('light-mode', !isDark);
-        
-        const icons = document.querySelectorAll('#themeToggle i, #mobileThemeToggle i');
-        icons.forEach(icon => {
-            icon.className = isDark ? 'fas fa-sun' : 'fas fa-moon';
-        });
-    }
-
-    showActionForm(action) {
-        const form = document.getElementById('actionForm');
-        const formTitle = document.getElementById('formTitle');
-        
-        const actionTitles = {
-            'verbal_warn': 'Mündliche Verwarnung',
-            'warn': 'Schriftliche Verwarnung', 
-            'kick': 'Spieler Kicken',
-            '1day_ban': '1-Tages Ban',
-            'permanent_ban': 'Permanenter Ban'
-        };
-
-        formTitle.textContent = `${actionTitles[action]} für ${this.selectedPlayer.name}`;
-        document.getElementById('actionType').value = action;
-        document.getElementById('adminName').value = this.currentAdmin;
-        
-        form.classList.remove('hidden');
-        form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
-    }
-
-    hideActionForm() {
-        document.getElementById('actionForm').classList.add('hidden');
-        document.getElementById('adminForm').reset();
+        if (this.isMobile) {
+            this.toggleSidebar();
+        }
     }
 
     async submitAction() {
@@ -399,6 +238,13 @@ class AdminPanel {
             });
 
             if (response.ok) {
+                // Log die Aktion
+                this.logActivity(formData.type, {
+                    playerId: formData.playerId,
+                    playerName: formData.playerName,
+                    reason: formData.reason
+                });
+
                 this.showNotification('Aktion erfolgreich durchgeführt!', 'success');
                 this.hideActionForm();
                 await this.loadAllRecords();
@@ -408,92 +254,6 @@ class AdminPanel {
             this.showNotification('Fehler bei der Aktion!', 'error');
             console.error('Error:', error);
         }
-    }
-
-    async loadAllRecords() {
-        try {
-            const response = await fetch(`${this.apiBase}/admin`);
-            this.allRecords = await response.json();
-            this.displayRecords(this.allRecords);
-        } catch (error) {
-            console.error('Error loading records:', error);
-            this.allRecords = [];
-        }
-    }
-
-    displayRecords(records) {
-        const container = document.getElementById('recordsList');
-        const filteredRecords = this.filterRecordsByType(records);
-        
-        container.innerHTML = filteredRecords.map(record => this.createRecordHTML(record)).join('');
-        
-        document.querySelectorAll('.delete-btn').forEach(btn => {
-            btn.addEventListener('click', (e) => {
-                const recordId = e.currentTarget.dataset.id;
-                this.showDeleteModal(recordId);
-            });
-        });
-    }
-
-    createRecordHTML(record) {
-        const typeLabels = {
-            'verbal_warn': 'Mündliche Verwarnung',
-            'warn': 'Schriftliche Verwarnung',
-            'kick': 'Kick',
-            '1day_ban': '1-Tage Ban',
-            'permanent_ban': 'Permanenter Ban'
-        };
-
-        const typeColors = {
-            'verbal_warn': 'verbal_warn',
-            'warn': 'warn',
-            'kick': 'kick',
-            '1day_ban': 'ban',
-            'permanent_ban': 'ban'
-        };
-
-        return `
-            <div class="record-item">
-                <div class="record-info">
-                    <div class="record-header">
-                        <span class="record-player">${record.playerName}</span>
-                        <span class="record-type ${typeColors[record.type]}">${typeLabels[record.type]}</span>
-                    </div>
-                    <div class="record-reason">${record.reason}</div>
-                    <div class="record-meta">
-                        <span>Admin: ${record.adminName}</span>
-                        <span>Datum: ${new Date(record.timestamp).toLocaleString('de-DE')}</span>
-                        ${record.playerId ? `<span>ID: ${record.playerId}</span>` : ''}
-                    </div>
-                </div>
-                <div class="record-actions">
-                    <button class="delete-btn" data-id="${record.id}">
-                        <i class="fas fa-trash"></i> 
-                        <span class="btn-text">Löschen</span>
-                    </button>
-                </div>
-            </div>
-        `;
-    }
-
-    filterRecordsByType(records) {
-        const filterType = document.getElementById('filterType').value;
-        if (filterType === 'all') return records;
-        return records.filter(record => record.type === filterType);
-    }
-
-    filterRecords() {
-        this.displayRecords(this.allRecords);
-    }
-
-    showDeleteModal(recordId) {
-        this.pendingDeleteId = recordId;
-        document.getElementById('deleteModal').classList.add('active');
-    }
-
-    hideDeleteModal() {
-        this.pendingDeleteId = null;
-        document.getElementById('deleteModal').classList.remove('active');
     }
 
     async confirmDelete() {
@@ -509,6 +269,15 @@ class AdminPanel {
             });
 
             if (response.ok) {
+                // Finde den gelöschten Eintrag fürs Logging
+                const deletedRecord = this.allRecords.find(record => record.id === this.pendingDeleteId);
+                
+                this.logActivity('delete_record', {
+                    recordId: this.pendingDeleteId,
+                    playerName: deletedRecord?.playerName,
+                    recordType: deletedRecord?.type
+                });
+
                 this.showNotification('Eintrag erfolgreich gelöscht!', 'success');
                 await this.loadAllRecords();
                 if (this.selectedPlayer) {
@@ -523,117 +292,55 @@ class AdminPanel {
         this.hideDeleteModal();
     }
 
-    selectPlayer(player) {
-        this.selectedPlayer = player;
-        this.showSelectedPlayer();
-        this.loadPlayerHistory();
-        
-        // Auf Mobile: Schließe Sidebar nach Spielerauswahl
-        if (this.isMobile) {
-            this.toggleSidebar();
+    // Event Listener für Log-Buttons erweitern
+    setupEventListeners() {
+        // ... bestehende Event Listener ...
+
+        // NEUE: Logs anzeigen Button
+        const viewLogsBtn = document.getElementById('viewLogsBtn');
+        if (viewLogsBtn) {
+            viewLogsBtn.addEventListener('click', () => {
+                this.showActivityLogs();
+                this.logActivity('view_logs');
+            });
+        }
+
+        // NEUE: Logs exportieren Button
+        const exportLogsBtn = document.getElementById('exportLogsBtn');
+        if (exportLogsBtn) {
+            exportLogsBtn.addEventListener('click', () => {
+                this.exportLogs();
+            });
+        }
+
+        // NEUE: Logs löschen Button
+        const clearLogsBtn = document.getElementById('clearLogsBtn');
+        if (clearLogsBtn) {
+            clearLogsBtn.addEventListener('click', () => {
+                this.clearLogs();
+                // Schließe das Modal nach dem Löschen
+                const modal = document.getElementById('activityLogModal');
+                if (modal) modal.classList.remove('active');
+            });
+        }
+
+        // NEUE: Log Modal schließen
+        const closeLogsModal = document.getElementById('closeLogsModal');
+        if (closeLogsModal) {
+            closeLogsModal.addEventListener('click', () => {
+                const modal = document.getElementById('activityLogModal');
+                if (modal) modal.classList.remove('active');
+            });
         }
     }
 
-    showSelectedPlayer() {
-        const container = document.getElementById('selectedPlayer');
-        const playerName = document.getElementById('playerName');
-        const playerId = document.getElementById('playerId');
-        const playerDisplayName = document.getElementById('playerDisplayName');
-        const playerAvatar = document.getElementById('playerAvatar');
-
-        playerName.textContent = this.selectedPlayer.name;
-        playerId.textContent = `ID: ${this.selectedPlayer.id}`;
-        playerDisplayName.textContent = this.selectedPlayer.displayName ? `(${this.selectedPlayer.displayName})` : '';
-        playerAvatar.src = this.selectedPlayer.avatar || '/api/placeholder-avatar';
-        playerAvatar.alt = `${this.selectedPlayer.name} Avatar`;
-
-        container.classList.remove('hidden');
-        document.getElementById('playerHistory').classList.remove('hidden');
-    }
-
-    clearPlayerSelection() {
-        this.selectedPlayer = null;
-        document.getElementById('selectedPlayer').classList.add('hidden');
-        document.getElementById('playerHistory').classList.add('hidden');
-    }
-
-    async loadPlayerHistory() {
-        if (!this.selectedPlayer) return;
-
-        try {
-            const response = await fetch(`${this.apiBase}/admin`);
-            const allRecords = await response.json();
-            const playerRecords = allRecords.filter(record => 
-                record.playerId === this.selectedPlayer.id
-            );
-
-            this.displayPlayerHistory(playerRecords);
-        } catch (error) {
-            console.error('Error loading player history:', error);
-        }
-    }
-
-    displayPlayerHistory(records) {
-        const container = document.getElementById('historyList');
-        
-        if (records.length === 0) {
-            container.innerHTML = '<div class="no-results">Keine Einträge für diesen Spieler.</div>';
-            return;
-        }
-
-        container.innerHTML = records.map(record => this.createRecordHTML(record)).join('');
-    }
-
-    showNotification(message, type = 'info') {
-        const container = document.getElementById('notificationContainer');
-        const notification = document.createElement('div');
-        
-        const icons = {
-            success: 'fas fa-check-circle',
-            error: 'fas fa-exclamation-circle',
-            warning: 'fas fa-exclamation-triangle',
-            info: 'fas fa-info-circle'
-        };
-
-        const colors = {
-            success: 'success',
-            error: 'error', 
-            warning: 'warning',
-            info: 'info'
-        };
-
-        notification.className = `notification ${colors[type]}`;
-        notification.innerHTML = `
-            <i class="${icons[type]}"></i>
-            <span>${message}</span>
-        `;
-        
-        container.appendChild(notification);
-        
-        // Automatisch entfernen nach 5 Sekunden
-        setTimeout(() => {
-            notification.style.animation = 'slideIn 0.3s ease reverse';
-            setTimeout(() => {
-                if (notification.parentNode) {
-                    notification.parentNode.removeChild(notification);
-                }
-            }, 300);
-        }, 5000);
+    // Beim Initialisieren Logs laden
+    async init() {
+        this.detectDeviceType();
+        this.setupResponsiveListeners();
+        this.checkLogin();
+        this.loadLogsFromStorage(); // NEU: Logs laden
+        this.setupEventListeners();
+        await this.loadAllRecords();
     }
 }
-
-// Initialize when DOM is loaded
-document.addEventListener('DOMContentLoaded', () => {
-    window.adminPanel = new AdminPanel();
-});
-
-// Handle page visibility changes
-document.addEventListener('visibilitychange', () => {
-    if (document.hidden) {
-        // Page is hidden, könnte optimiert werden
-        console.log('Page is hidden');
-    } else {
-        // Page is visible
-        console.log('Page is visible');
-    }
-});
