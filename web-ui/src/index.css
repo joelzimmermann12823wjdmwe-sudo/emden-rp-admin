@@ -1,45 +1,111 @@
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+/* ===============================================
+   NORDSTADT RP ADMIN PANEL - GLOBAL STYLES (index.css)
+   Modernes, dunkles Theme mit Akzentfarben.
+   =============================================== */
 
-/* --- GLOBALE DESIGN-TOKENS (DARK MODE) --- */
+/* --- Variablendefinition (Farbpalette) --- */
 :root {
-    --color-background-dark: #121212;         /* Haupt-Hintergrund (Tiefes Schwarz) */
-    --color-surface: #1E1E1E;                 /* Sidebar, Listen-Einträge */
-    --color-surface-elevated: #282828;        /* Detail-Panel, Header */
-    --color-surface-hover: #333333;           /* Hover-Effekte auf Listen */
-    
-    --color-accent-primary: #3B82F6;          /* Nordstadt-Akzent (Ein klares Blau) */
-    --color-accent-hover: #60A5FA;            /* Helleres Blau beim Hover */
-    --color-text-primary: #E0E0E0;            /* Haupt-Textfarbe (Hellgrau) */
-    --color-text-secondary: #A0A0A0;          /* Sekundärtext (ID-Nummern) */
+    --color-bg-primary: #1a1a2e; /* Dunkler Hintergrund */
+    --color-bg-secondary: #16213e; /* Etwas hellerer Hintergrund für Sektionen */
+    --color-surface: #0f3460; /* Hauptflächen, Karten */
+    --color-surface-hover: #1b4b8a; /* Hover für Oberflächen */
+    --color-border: #0e3760; /* dezente Ränder */
+    --color-text-primary: #e0e0e0; /* Heller Text für Lesbarkeit */
+    --color-text-secondary: #a0a0a0; /* Sekundärer Text, Beschreibungen */
+    --color-accent-primary: #e94560; /* Akzentfarbe für wichtige Elemente (Buttons, Icons) */
+    --color-accent-hover: #c9354e; /* Hover für Akzentfarben */
+    --color-success: #3cb462; /* Erfolgsnachrichten, Revive */
+    --color-warning: #f1c40f; /* Warnungen, Kicks */
+    --color-danger: #e74c3c; /* Fehler, Bans */
 
-    /* Statusfarben */
-    --color-danger: #EF4444;                  /* Rot (Kick/Ban) */
-    --color-danger-hover: #DC2626;
-    --color-success: #10B981;                 /* Grün (Revive) */
+    --font-family-primary: 'Inter', sans-serif; /* Moderne, lesbare Schriftart */
+    --font-family-monospace: 'Fira Code', monospace; /* Für Code/Logs */
 
-    --shadow-z1: 0 4px 15px rgba(0, 0, 0, 0.4);
-    --border-radius: 8px;
-    --transition-speed: 0.2s;
+    --border-radius: 8px; /* Abgerundete Ecken */
+    --shadow-elevation-low: 0 1px 3px rgba(0, 0, 0, 0.12), 0 1px 2px rgba(0, 0, 0, 0.24);
+    --shadow-elevation-medium: 0 3px 6px rgba(0, 0, 0, 0.16), 0 3px 6px rgba(0, 0, 0, 0.23);
+    --shadow-elevation-high: 0 10px 20px rgba(0, 0, 0, 0.19), 0 6px 6px rgba(0, 0, 0, 0.23);
 }
 
-/* --- BASIS STYLES FÜR NUI --- */
-* {
+/* --- Globale Styles --- */
+*, *::before, *::after {
     box-sizing: border-box;
     margin: 0;
     padding: 0;
 }
 
-body {
-    background-color: transparent !important; 
+html, body, #root {
+    height: 100%;
+    width: 100%;
+    overflow: hidden; /* Verhindert Scrollbalken */
+    font-family: var(--font-family-primary);
+    background-color: transparent; /* Wichtig für NUI */
     color: var(--color-text-primary);
-    font-family: 'Inter', sans-serif; 
-    overflow: hidden; /* Verhindert unnötige Scrollbalken */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
 }
 
-/* Reset für Buttons */
-button {
-    font-family: inherit;
-    cursor: pointer;
-    border: none;
-    transition: background-color var(--transition-speed);
+/* --- App Container (als Overlay) --- */
+.app-container {
+    position: absolute; /* Überlagert das Spiel */
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.6); /* Leichter, dunkler Overlay */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    backdrop-filter: blur(5px); /* Leichter Blur für den Hintergrund */
+    opacity: 0; /* Standardmäßig unsichtbar */
+    transition: opacity 0.3s ease-in-out;
+}
+
+/* Wenn das Panel sichtbar ist (durch client.lua gesetzt) */
+.app-container.active {
+    opacity: 1;
+}
+
+/* --- Allgemeine Schriftarten und Links --- */
+a {
+    color: var(--color-accent-primary);
+    text-decoration: none;
+}
+a:hover {
+    text-decoration: underline;
+}
+
+h1, h2, h3, h4, h5, h6 {
+    color: var(--color-text-primary);
+    margin-bottom: 0.5em;
+}
+
+input, button, select, textarea {
+    font-family: var(--font-family-primary);
+}
+
+/* --- Placeholder-Text --- */
+.placeholder {
+    color: var(--color-text-secondary);
+    text-align: center;
+    padding: 20px;
+    background-color: var(--color-bg-secondary);
+    border-radius: var(--border-radius);
+    box-shadow: var(--shadow-elevation-low);
+}
+
+/* --- Scrollbar Styling --- */
+::-webkit-scrollbar {
+    width: 8px;
+    background-color: var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb {
+    background-color: var(--color-surface-hover);
+    border-radius: 10px;
+    border: 2px solid var(--color-bg-secondary);
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background-color: var(--color-accent-primary);
 }

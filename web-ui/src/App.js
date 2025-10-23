@@ -1,3 +1,5 @@
+import '@fontsource/inter'; // Neue Zeile hinzufügen
+import React, { useState, useEffect, useCallback } from 'react';
 import React, { useState, useCallback } from 'react';
 import LoginPage from './pages/LoginPage';
 import ModPanelPage from './pages/ModPanelPage';
