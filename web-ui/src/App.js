@@ -1,5 +1,6 @@
 // /workspaces/emden-rp-admin/web-ui/src/App.jsx
-
+import './index.css'; 
+import './components/Components.css';
 import React, { useState, useEffect, useCallback } from 'react';
 import Login from './components/Login.jsx';
 import ModPanelPage from './pages/ModPanelPage.jsx';
